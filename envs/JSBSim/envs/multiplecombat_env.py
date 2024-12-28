@@ -88,6 +88,7 @@ class MultipleCombatEnv(BaseEnv):
         for idx, sim in enumerate(self.agents.values()):
             sim.reload(init_states[idx])
         self._tempsims.clear()
+        self._chaffsims.clear()
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Run one timestep of the environment's dynamics. When end of
@@ -120,6 +121,19 @@ class MultipleCombatEnv(BaseEnv):
                 sim.run()
             for sim in self._tempsims.values():
                 sim.run()
+            ###SSI ADDED#########
+            for sim in self._chaffsims.values():
+                sim.run()
+            for missile in self._tempsims.values():
+                if missile.is_done:
+                    continue
+                for chaff in self._chaffsims.values():
+                    if chaff.is_done:
+                        continue
+                    if(np.linalg.norm(chaff.get_position() - missile.get_position()) <= chaff.effective_radius):
+                        if(np.random.rand() < 0.85):
+                            missile.missed()
+            ###SSI ADDED###########
         self.task.step(self)
         obs = self.get_obs()
         share_obs = self.get_state()

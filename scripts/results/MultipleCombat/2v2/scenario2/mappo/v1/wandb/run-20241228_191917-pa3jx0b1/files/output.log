@@ -1,0 +1,18 @@
+
+ Load selfplay opponents: Algo fsp, num_opponents 1.
+Traceback (most recent call last):
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 170, in main
+    runner.run()
+  File "/home/son/kai_ai/aircombat-selfplay/runner/share_jsbsim_runner.py", line 81, in run
+    obs, share_obs, rewards, dones, infos = self.envs.step(actions)
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 119, in step
+    self.step_async(actions)
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 273, in step_async
+    remote.send(('step', action))
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 206, in send
+    self._send_bytes(_ForkingPickler.dumps(obj))
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 411, in _send_bytes
+    self._send(header + buf)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+KeyboardInterrupt

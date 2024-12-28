@@ -1,0 +1,41 @@
+
+ Load selfplay opponents: Algo fsp, num_opponents 1.
+/home/son/kai_ai/aircombat-selfplay/checkpoint/1v1_actor.pt
+ Scenario 1v1/ShootMissile/scenario1 Algo ppo Exp v1 updates 0/2777 episodes, total num timesteps 36000/100000000, FPS 659.
+/home/son/kai_ai/aircombat-selfplay/runner/jsbsim_runner.py:84: RuntimeWarning: divide by zero encountered in divide
+  train_infos["average_episode_rewards"] = self.buffer.rewards.sum() / (self.buffer.masks == False).sum()
+average episode rewards is -inf
+Traceback (most recent call last):
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 170, in main
+    runner.run()
+  File "/home/son/kai_ai/aircombat-selfplay/runner/jsbsim_runner.py", line 52, in run
+    obs, rewards, dones, infos = self.envs.step(actions)
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 120, in step
+    return self.step_wait()
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 278, in step_wait
+    results = [remote.recv() for remote in self.remotes]
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 278, in <listcomp>
+    results = [remote.recv() for remote in self.remotes]
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 250, in recv
+    buf = self._recv_bytes()
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 414, in _recv_bytes
+    buf = self._recv(4)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 379, in _recv
+    chunk = read(handle, remaining)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 183, in <module>
+    main(sys.argv[1:])
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 175, in main
+    envs.close()
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 110, in close
+    self.close_extras()
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 295, in close_extras
+    remote.recv()
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 250, in recv
+    buf = self._recv_bytes()
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 414, in _recv_bytes
+    buf = self._recv(4)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/multiprocessing/connection.py", line 383, in _recv
+    raise EOFError
+EOFError
