@@ -85,11 +85,16 @@ class BaseEnv(gymnasium.Env):
                     sim.enemies.append(s)
 
         self._tempsims = {}    # type: Dict[str, BaseSimulator]
+        self._chaffsims= {}
 
     def add_temp_simulator(self, sim: BaseSimulator):
         self._tempsims[sim.uid] = sim
         return sim # ADD <- To implement and manage missile objects
 
+    def add_chaff_simulator(self, sim: BaseSimulator):
+        self._chaffsims[sim.uid] = sim
+        return sim
+    
     def reset(self) -> np.ndarray:
         """Resets the state of the environment and returns an initial observation.
 
@@ -101,6 +106,7 @@ class BaseEnv(gymnasium.Env):
         for sim in self._jsbsims.values():
             sim.reload()
         self._tempsims.clear()
+        self._chaffsims.clear()
         # reset task
         self.task.reset(self)
         obs = self.get_obs()
@@ -135,6 +141,19 @@ class BaseEnv(gymnasium.Env):
                 sim.run()
             for sim in self._tempsims.values():
                 sim.run()
+            ###SSI ADDED#########
+            for sim in self._chaffsims.values():
+                sim.run()
+            for missile in self._tempsims.values():
+                if missile.is_done:
+                    continue
+                for chaff in self._chaffsims.values():
+                    if chaff.is_done:
+                        continue
+                    if(np.linalg.norm(chaff.get_position() - missile.get_position()) <= chaff.effective_radius):
+                        if(np.random.rand() < 0.85):
+                            missile.missed()
+            ###SSI ADDED###########
         self.task.step(self)
 
         obs = self.get_obs()
@@ -177,8 +196,11 @@ class BaseEnv(gymnasium.Env):
             sim.close()
         for sim in self._tempsims.values():
             sim.close()
+        for sim in self._chaffsims.values():
+            sim.close()
         self._jsbsims.clear()
         self._tempsims.clear()
+        self._chaffsims.clear()
 
     def render(self, mode="txt", filepath='./JSBSimRecording.txt.acmi'):
         """Renders the environment.

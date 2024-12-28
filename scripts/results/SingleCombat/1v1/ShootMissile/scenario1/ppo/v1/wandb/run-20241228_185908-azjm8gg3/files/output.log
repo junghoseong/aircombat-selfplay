@@ -1,0 +1,56 @@
+
+ Load selfplay opponents: Algo fsp, num_opponents 1.
+/home/son/kai_ai/aircombat-selfplay/checkpoint/1v1_actor.pt
+ Scenario 1v1/ShootMissile/scenario1 Algo ppo Exp v1 updates 0/2777 episodes, total num timesteps 36000/100000000, FPS 642.
+/home/son/kai_ai/aircombat-selfplay/runner/jsbsim_runner.py:84: RuntimeWarning: divide by zero encountered in divide
+  train_infos["average_episode_rewards"] = self.buffer.rewards.sum() / (self.buffer.masks == False).sum()
+average episode rewards is -inf
+ Scenario 1v1/ShootMissile/scenario1 Algo ppo Exp v1 updates 1/2777 episodes, total num timesteps 72000/100000000, FPS 674.
+/home/son/kai_ai/aircombat-selfplay/runner/jsbsim_runner.py:84: RuntimeWarning: invalid value encountered in divide
+  train_infos["average_episode_rewards"] = self.buffer.rewards.sum() / (self.buffer.masks == False).sum()
+average episode rewards is nan
+Start evaluation...
+ Choose opponents ['0'] for evaluation
+ Load opponent 0 for evaluation (0/1)
+init state is [{'ic_long_gc_deg': 120.0, 'ic_lat_geod_deg': 60.0, 'ic_h_sl_ft': 20000, 'ic_psi_true_deg': 0, 'ic_u_fps': 800.0}, {'ic_h_sl_ft': 20000, 'ic_lat_geod_deg': 60.2, 'ic_long_gc_deg': 120.0, 'ic_psi_true_deg': 180.0, 'ic_u_fps': 800.0}]
+[{'ic_long_gc_deg': 120.0, 'ic_lat_geod_deg': 60.0, 'ic_h_sl_ft': 20000, 'ic_psi_true_deg': 0, 'ic_u_fps': 800.0}, {'ic_h_sl_ft': 20000, 'ic_lat_geod_deg': 60.2, 'ic_long_gc_deg': 120.0, 'ic_psi_true_deg': 180.0, 'ic_u_fps': 800.0}]
+chaff deployed!!
+chaff deployed!!
+Missed!
+Missed!
+Missed!
+Missed!
+gun shot, blood = 95
+ eval average episode rewards: -185.10013
+ latest elo score: 1000.0
+[{'ic_long_gc_deg': 120.0, 'ic_lat_geod_deg': 60.0, 'ic_h_sl_ft': 20000, 'ic_psi_true_deg': 0, 'ic_u_fps': 800.0}, {'ic_h_sl_ft': 20000, 'ic_lat_geod_deg': 60.2, 'ic_long_gc_deg': 120.0, 'ic_psi_true_deg': 180.0, 'ic_u_fps': 800.0}]
+...End evaluation
+ Choose opponents ['0'] for training
+Traceback (most recent call last):
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 170, in main
+    runner.run()
+  File "/home/son/kai_ai/aircombat-selfplay/runner/jsbsim_runner.py", line 49, in run
+    values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/son/kai_ai/aircombat-selfplay/runner/selfplay_jsbsim_runner.py", line 93, in collect
+    = policy.act(np.concatenate(self.opponent_obs[env_idx]),
+  File "/home/son/kai_ai/aircombat-selfplay/algorithms/ppo/ppo_policy.py", line 56, in act
+    actions, _, rnn_states_actor = self.actor(obs, rnn_states_actor, masks, deterministic)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/son/kai_ai/aircombat-selfplay/algorithms/ppo/ppo_actor.py", line 57, in forward
+    actions, action_log_probs = self.act(actor_features, deterministic, alpha0=alpha0, beta0=beta0)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/son/kai_ai/aircombat-selfplay/algorithms/utils/act.py", line 108, in forward
+    action = action_dist.mode() if deterministic else action_dist.sample()
+  File "/home/son/kai_ai/aircombat-selfplay/algorithms/utils/distributions.py", line 16, in sample
+    return super().sample().unsqueeze(-1)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/distributions/categorical.py", line 132, in sample
+    samples_2d = torch.multinomial(probs_2d, sample_shape.numel(), True).T
+KeyboardInterrupt

@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 179, in <module>
+    main(sys.argv[1:])
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 159, in main
+    runner = Runner(config)
+  File "/home/son/kai_ai/aircombat-selfplay/runner/base_runner.py", line 49, in __init__
+    self.load()
+  File "/home/son/kai_ai/aircombat-selfplay/runner/selfplay_jsbsim_runner.py", line 33, in load
+    self.policy = Policy(self.all_args, self.obs_space, self.act_space, device=self.device)
+  File "/home/son/kai_ai/aircombat-selfplay/algorithms/ppo/ppo_policy.py", line 17, in __init__
+    self.actor = PPOActor(args, self.obs_space, self.act_space, self.device)
+  File "/home/son/kai_ai/aircombat-selfplay/algorithms/ppo/ppo_actor.py", line 34, in __init__
+    self.to(device)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1173, in to
+    return self._apply(convert)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 779, in _apply
+    module._apply(fn)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 779, in _apply
+    module._apply(fn)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 779, in _apply
+    module._apply(fn)
+  [Previous line repeated 1 more time]
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 804, in _apply
+    param_applied = fn(param)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1159, in convert
+    return t.to(
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/cuda/__init__.py", line 293, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: No CUDA GPUs are available

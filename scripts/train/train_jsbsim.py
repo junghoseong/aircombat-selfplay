@@ -90,6 +90,10 @@ def main(args):
     torch.manual_seed(all_args.seed)
     torch.cuda.manual_seed_all(all_args.seed)
 
+    # print(torch.cuda.is_available())
+    # if(not torch.cuda.is_available()):
+    #    raise Exception
+
     # cuda
     if all_args.cuda and torch.cuda.is_available():
         logging.info("choose to use gpu...")

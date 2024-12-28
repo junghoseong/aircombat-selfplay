@@ -128,6 +128,7 @@ class AircraftSimulator(BaseSimulator):
         # temp simulator links
         self.launch_missiles = []   # type: List[MissileSimulator]
         self.under_missiles = []    # type: List[MissileSimulator]
+
         # initialize simulator
         self.reload()
 
@@ -324,7 +325,78 @@ class AircraftSimulator(BaseSimulator):
                 return missile
         return None
 
+class ChaffSimulator(BaseSimulator):
+    
+    INACTIVE = -1
+    LAUNCHED = 0
+    DONE = 1
 
+    @classmethod
+    def create(cls, parent: AircraftSimulator, uid: str, chaff_model: str = "CHF"):
+        chaff = ChaffSimulator(uid,parent.color, chaff_model, parent.dt)
+        chaff.launch(parent)
+        return chaff
+    
+    def __init__(self, 
+                 uid="A0111",
+                 color="Red",
+                 model="Chaff",
+                 dt = 1/12):
+        super().__init__(uid,color,dt)
+        self.__status = ChaffSimulator.INACTIVE
+        self.model = model
+        self.parent_aircraft = None  # type: AircraftSimulator
+
+        self._t_max = 20             # unit: s
+        self._effective_radius = 500 # unit: m
+
+    @property
+    def is_alive(self):
+        """Chaff is effective"""
+        return self.__status == ChaffSimulator.LAUNCHED
+    
+    @property
+    def is_done(self):
+        """Chaff is done"""
+        return self.__status == ChaffSimulator.DONE
+    
+    @property
+    def effective_radius(self):
+        return self._effective_radius
+    
+    def launch(self, parent: AircraftSimulator):
+        self.parent_aircraft = parent
+        self._geodetic[:] = parent.get_geodetic()
+        self._position[:] = parent.get_position()
+        self._velocity[:] = parent.get_velocity()
+        self._posture[:] = parent.get_rpy()
+        self.lon0, self.lat0, self.alt0 = parent.lon0, parent.lat0, parent.alt0
+
+        self._t = 0
+        self.__status = ChaffSimulator.LAUNCHED
+
+    def run(self):
+        self._t += self.dt
+
+        if (self._t > self._t_max):
+            self.__status = ChaffSimulator.DONE
+
+    def log(self):
+        if self.is_alive:
+            log_msg = super().log()
+        else:
+            log_msg = None
+        return log_msg
+        
+    
+    def close(self):
+        pass
+
+
+
+
+
+        
 class MissileSimulator(BaseSimulator):
 
     INACTIVE = -1
@@ -420,6 +492,10 @@ class MissileSimulator(BaseSimulator):
     @property
     def target_distance(self) -> float:
         return np.linalg.norm(self.target_aircraft.get_position() - self.get_position())
+    
+    def missed(self):
+        self.__status = MissileSimulator.MISS
+        print("Missed!")
 
     def launch(self, parent: AircraftSimulator):
         # inherit kinetic parameters from parent aricraft
@@ -453,7 +529,8 @@ class MissileSimulator(BaseSimulator):
             self.__status = MissileSimulator.HIT
             self.target_aircraft.shotdown()
         elif (self._t > self._t_max) or (np.linalg.norm(self.get_velocity()) < self._v_min) \
-                or np.sum(self._distance_increment) >= self._distance_increment.maxlen or not self.target_aircraft.is_alive:
+                or np.sum(self._distance_increment) >= self._distance_increment.maxlen or \
+                not self.target_aircraft.is_alive:
             self.__status = MissileSimulator.MISS
         else:
             self._state_trans(action)

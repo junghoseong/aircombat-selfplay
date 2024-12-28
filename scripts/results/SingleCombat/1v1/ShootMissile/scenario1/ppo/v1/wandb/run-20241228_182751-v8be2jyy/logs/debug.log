@@ -1,0 +1,42 @@
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Current SDK version is 0.17.6
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Configure stats pid to 16664
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Loading settings from /home/son/.config/wandb/settings
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Loading settings from /home/son/kai_ai/aircombat-selfplay/scripts/wandb/settings
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-12-28 18:27:51,661 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'scripts/train/train_jsbsim.py', 'program_abspath': '/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py', 'program': '/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py'}
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_setup.py:_flush():76] Applying login settings: {}
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_init.py:_log_setup():521] Logging user logs to /home/son/kai_ai/aircombat-selfplay/scripts/results/SingleCombat/1v1/ShootMissile/scenario1/ppo/v1/wandb/run-20241228_182751-v8be2jyy/logs/debug.log
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_init.py:_log_setup():522] Logging internal logs to /home/son/kai_ai/aircombat-selfplay/scripts/results/SingleCombat/1v1/ShootMissile/scenario1/ppo/v1/wandb/run-20241228_182751-v8be2jyy/logs/debug-internal.log
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_init.py:init():559] calling init triggers
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_init.py:init():566] wandb.init called with sweep_config: {}
+config: {'env_name': 'SingleCombat', 'algorithm_name': 'ppo', 'experiment_name': 'v1', 'seed': 1, 'cuda': True, 'n_training_threads': 1, 'n_rollout_threads': 12, 'num_env_steps': 100000000.0, 'model_dir': None, 'use_wandb': True, 'user_name': 'liuqh', 'wandb_name': 'liuqh', 'checkpoint': True, 'checkpoint_path': '/home/son/kai_ai/aircombat-selfplay/checkpoint/1v1_actor.pt', 'gamma': 0.99, 'buffer_size': 3000, 'use_proper_time_limits': False, 'use_gae': True, 'gae_lambda': 0.95, 'hidden_size': '128 128', 'act_hidden_size': '128 128', 'activation_id': 1, 'use_feature_normalization': False, 'gain': 0.01, 'use_prior': True, 'use_recurrent_policy': True, 'recurrent_hidden_size': 128, 'recurrent_hidden_layers': 1, 'data_chunk_length': 60, 'lr': 0.0003, 'ppo_epoch': 4, 'clip_param': 0.2, 'use_clipped_value_loss': False, 'num_mini_batch': 5, 'value_loss_coef': 1, 'entropy_coef': 0.001, 'use_max_grad_norm': True, 'max_grad_norm': 2.0, 'use_selfplay': True, 'selfplay_algorithm': 'fsp', 'n_choose_opponents': 1, 'init_elo': 1000.0, 'save_interval': 1, 'log_interval': 1, 'use_eval': True, 'n_eval_rollout_threads': 1, 'eval_interval': 1, 'eval_episodes': 1, 'render_opponent_index': 'latest', 'render_index': 'latest', 'scenario_name': '1v1/ShootMissile/scenario1'}
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_init.py:init():609] starting backend
+2024-12-28 18:27:51,662 INFO    MainThread:16664 [wandb_init.py:init():613] setting up manager
+2024-12-28 18:27:51,664 INFO    MainThread:16664 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-12-28 18:27:51,665 INFO    MainThread:16664 [wandb_init.py:init():621] backend started and connected
+2024-12-28 18:27:51,670 INFO    MainThread:16664 [wandb_init.py:init():716] updated telemetry
+2024-12-28 18:27:51,673 INFO    MainThread:16664 [wandb_init.py:init():749] communicating run to backend with 90.0 second timeout
+2024-12-28 18:27:52,213 INFO    MainThread:16664 [wandb_run.py:_on_init():2438] communicating current version
+2024-12-28 18:27:52,276 INFO    MainThread:16664 [wandb_run.py:_on_init():2447] got version response upgrade_message: "wandb version 0.19.1 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2024-12-28 18:27:52,276 INFO    MainThread:16664 [wandb_init.py:init():800] starting run threads in backend
+2024-12-28 18:27:57,776 WARNING MainThread:16664 [wandb_init.py:init():1181] interrupted
+Traceback (most recent call last):
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 1177, in init
+    return wi.init()
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/wandb/sdk/wandb_init.py", line 842, in init
+    run._on_start()
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 2470, in _on_start
+    self._backend.interface.publish_python_packages(working_set())
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 300, in publish_python_packages
+    for pkg in working_set:
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/wandb/util.py", line 1887, in working_set
+    yield InstalledDistribution(key=d.metadata["Name"], version=d.version)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/importlib/metadata/__init__.py", line 605, in metadata
+    self.read_text('METADATA')
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/importlib/metadata/__init__.py", line 927, in read_text
+    return self._path.joinpath(filename).read_text(encoding='utf-8')
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/pathlib.py", line 1133, in read_text
+    encoding = io.text_encoding(encoding)
+KeyboardInterrupt

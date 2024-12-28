@@ -4,7 +4,7 @@ from collections import deque
 
 from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask
 from ..reward_functions import AltitudeReward, PostureReward, MissilePostureReward, EventDrivenReward, ShootPenaltyReward
-from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B
+from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B, ChaffSimulator
 from ..utils.utils import LLA2NEU, get_AO_TA_R
 
 
@@ -187,6 +187,7 @@ class SingleCombatShootMissileTask(SingleCombatDodgeMissileTask):
         self._shoot_action = {agent_id: 0 for agent_id in env.agents.keys()}
         self.remaining_missiles = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
         self.agent_last_shot_missile = {agent_id: 0 for agent_id in env.agents.keys()} # ADDED <- To manage missile id (linking to agent id)
+        self.agent_last_shot_chaff = {agent_id: 0 for agent_id in env.agents.keys()} # SSI ADDED <- To manage chaffs
         super().reset(env)
     
     def step(self, env):
@@ -270,6 +271,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         
         SingleCombatShootMissileTask.reset(self, env)
 
+#####SSI ADDED#######
     def step(self, env):
         SingleCombatTask.step(self, env)
         for agent_id, agent in env.agents.items():
@@ -279,14 +281,17 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
             shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
             shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][3] and self.remaining_chaff_flare[agent_id] > 0
 
-            if shoot_flag_AIM_120B and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # ADDED <- manage missile duration
-                if self.a2a_launch_available(agent)[0]:
+            if shoot_flag_gun and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # ADDED <- manage missile duration
+                avail, enemy = self.a2a_launch_available(agent)
+                if avail[0]:
                     target = self.get_target(agent)
-                    print("gun shot") # TODO: implement damage of gun to enemies
+                    enemy.bloods -= 5
+                    print(f"gun shot, blood = {enemy.bloods}") # TODO: implement damage of gun to enemies
                     self.remaining_gun[agent_id] -= 1
 
             if shoot_flag_AIM_120B and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # ADDED <- manage missile duration
-                if self.a2a_launch_available(agent)[1]:
+                avail, _ = self.a2a_launch_available(agent)
+                if avail[1]:
                     new_missile_uid = agent_id + str(self.remaining_missiles_AIM_120B[agent_id])
                     target = self.get_target(agent)
                     self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
@@ -294,19 +299,25 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
                     self.remaining_missiles_AIM_120B[agent_id] -= 1
 
             if shoot_flag_AIM_9M and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # ADDED <- manage missile duration
-                if self.a2a_launch_available(agent)[2]:
+                avail, _ = self.a2a_launch_available(agent)
+                if avail[2]:
                     new_missile_uid = agent_id + str(self.remaining_missiles_AIM_9M[agent_id])
                     target = self.get_target(agent)
                     self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
                         AIM_9M.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-9M"))
                     self.remaining_missiles_AIM_9M[agent_id] -= 1
             
-            if shoot_flag_chaff_flare:
+            if shoot_flag_chaff_flare and(self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # SSI ADDED <- chaffs are bursted at the end of last chaff..
                 for missiles in env._tempsims.values():
-                    if missiles.target_aircraft == agent:
-                        if np.random.rand() < 0.85:
-                            print("chaff detected!!") # TODO: remove missile
-                        
+                    if missiles.target_aircraft == agent and missiles.target_distance < 900:
+                        new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
+                        self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
+                            ChaffSimulator.create(parent=agent,uid = new_chaff_uid, chaff_model="CHF"))
+                        print("chaff deployed!!") # TODO: remove missile
+                        #if np.random.rand() < 0.85:
+
+                            
+        
     def a2a_launch_available(self, agent):
         ret = [False, False, False]
         munition_info = {
@@ -322,8 +333,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         heading = agent.get_velocity()
         distance = np.linalg.norm(target)
         attack_angle = np.rad2deg(np.arccos(np.clip(np.sum(target * heading) / (distance * np.linalg.norm(heading) + 1e-8), -1, 1)))
-        print(distance, attack_angle)
-
+        
         if distance / 1000 < munition_info["GUN"]["dist"] and attack_angle < munition_info["GUN"]["AO"]:
             ret[0] = True 
         
@@ -333,7 +343,8 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         if distance / 1000 < munition_info["AIM-9M"]["dist"] and attack_angle < munition_info["AIM-9M"]["AO"]:
             ret[2] = True
         
-        return ret
+        return ret, enemy
+#####SSI ADDED#######
         
     def get_target(self, agent):
         target_distances = []
