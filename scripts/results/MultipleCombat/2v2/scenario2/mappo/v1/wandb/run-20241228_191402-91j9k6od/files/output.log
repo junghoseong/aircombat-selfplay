@@ -1,0 +1,50 @@
+
+ Load selfplay opponents: Algo fsp, num_opponents 1.
+ Scenario 2v2/scenario2 Algo mappo Exp v1 updates 0/1041 episodes, total num timesteps 96000/100000000, FPS 412.
+average episode rewards is 163.60027058919272
+Start evaluation...
+ Choose opponents ['latest'] for evaluation
+ Load opponent latest for evaluation (1/1)
+init state is [{'ic_long_gc_deg': 120.0, 'ic_lat_geod_deg': 60.0, 'ic_h_sl_ft': 20000, 'ic_psi_true_deg': 0.0, 'ic_u_fps': 800.0}, {'ic_long_gc_deg': 120.01, 'ic_lat_geod_deg': 60.0, 'ic_h_sl_ft': 20000, 'ic_psi_true_deg': 0.0, 'ic_u_fps': 800.0}, {'ic_h_sl_ft': 20000, 'ic_long_gc_deg': 120.0, 'ic_lat_geod_deg': 60.1, 'ic_psi_true_deg': 180.0, 'ic_u_fps': 800.0}, {'ic_h_sl_ft': 20000, 'ic_long_gc_deg': 120.01, 'ic_lat_geod_deg': 60.1, 'ic_psi_true_deg': 180.0, 'ic_u_fps': 800.0}]
+Traceback (most recent call last):
+  File "/home/son/kai_ai/aircombat-selfplay/scripts/train/train_jsbsim.py", line 170, in main
+    runner.run()
+  File "/home/son/kai_ai/aircombat-selfplay/runner/share_jsbsim_runner.py", line 118, in run
+    self.eval(self.total_num_steps)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/son/kai_ai/aircombat-selfplay/runner/share_jsbsim_runner.py", line 258, in eval
+    eval_obs, eval_share_obs, eval_rewards, eval_dones, eval_infos = self.eval_envs.step(eval_actions)
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 120, in step
+    return self.step_wait()
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 348, in step_wait
+    results = [env.step(a) for (a, env) in zip(self.actions, self.envs)]
+  File "/home/son/kai_ai/aircombat-selfplay/envs/env_wrappers.py", line 348, in <listcomp>
+    results = [env.step(a) for (a, env) in zip(self.actions, self.envs)]
+  File "/home/son/kai_ai/aircombat-selfplay/envs/JSBSim/envs/multiplecombat_env.py", line 115, in step
+    a_action = self.task.normalize_action(self, agent_id, action[agent_id])
+  File "/home/son/kai_ai/aircombat-selfplay/envs/JSBSim/tasks/multiplecombat_with_missle_task.py", line 278, in normalize_action
+    return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
+  File "/home/son/kai_ai/aircombat-selfplay/envs/JSBSim/tasks/multiplecombat_task.py", line 157, in normalize_action
+    _action, _rnn_states = self.lowlevel_policy(input_obs, self._inner_rnn_states[agent_id])
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/son/kai_ai/aircombat-selfplay/envs/JSBSim/model/baseline_actor.py", line 108, in forward
+    x, h_s = self.rnn(x, h_s)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/son/kai_ai/aircombat-selfplay/envs/JSBSim/model/baseline_actor.py", line 55, in forward
+    x = self.norm(x)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/modules/normalization.py", line 201, in forward
+    return F.layer_norm(
+  File "/home/son/anaconda3/envs/rl_exp/lib/python3.10/site-packages/torch/nn/functional.py", line 2573, in layer_norm
+    return torch.layer_norm(input, normalized_shape, weight, bias, eps, torch.backends.cudnn.enabled)
+KeyboardInterrupt
