@@ -239,6 +239,10 @@ class BaseEnv(gymnasium.Env):
                     log_msg = sim.log()
                     if log_msg is not None:
                         f.write(log_msg + "\n")
+                for sim in self._chaffsims.values():
+                    log_msg = sim.log()
+                    if log_msg is not None:
+                        f.write(log_msg+"\n")
         # TODO: real time rendering [Use FlightGear, etc.]
         else:
             raise NotImplementedError

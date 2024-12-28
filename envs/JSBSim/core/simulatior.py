@@ -348,7 +348,7 @@ class ChaffSimulator(BaseSimulator):
         self.parent_aircraft = None  # type: AircraftSimulator
 
         self._t_max = 20             # unit: s
-        self._effective_radius = 2000 # unit: m
+        self._effective_radius = 200 # unit: m
 
     @property
     def is_alive(self):

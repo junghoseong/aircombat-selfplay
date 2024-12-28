@@ -323,7 +323,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             
             if shoot_flag_chaff_flare and(self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # SSI ADDED <- chaffs are bursted at the end of last chaff..
                 for missiles in env._tempsims.values():
-                    if missiles.target_aircraft == agent and missiles.target_distance < 900:
+                    if missiles.target_aircraft == agent and missiles.target_distance < 1000:
                         new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent,uid = new_chaff_uid, chaff_model="CHF"))
@@ -444,7 +444,7 @@ class Scenario3(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             
             if shoot_flag_chaff_flare and(self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # SSI ADDED <- chaffs are bursted at the end of last chaff..
                 for missiles in env._tempsims.values():
-                    if missiles.target_aircraft == agent and missiles.target_distance < 900:
+                    if missiles.target_aircraft == agent and missiles.target_distance < 1000:
                         new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent,uid = new_chaff_uid, chaff_model="CHF"))
