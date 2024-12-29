@@ -125,7 +125,19 @@ class MultipleCombatEnv(BaseEnv):
                 sim.run()
             for sim in self._tempsims.values():
                 sim.run()
+            for sim in self._chaffsims.values(): # implement chaff
+                sim.run()
+            for missile in self._tempsims.values():
+                if missile.is_done:
+                    continue
+                for chaff in self._chaffsims.values():
+                    if chaff.is_done:
+                        continue
+                    if (np.linalg.norm(chaff.get_position() - missile.get_position()) <= chaff.effective_radius):
+                        if (np.random.rand() < 0.85):
+                            missile.missed() # Check if Chaff completely delete missile object
         self.task.step(self)
+
         obs = self.get_obs()
         share_obs = self.get_state()
 

@@ -85,10 +85,15 @@ class BaseEnv(gymnasium.Env):
                     sim.enemies.append(s)
 
         self._tempsims = {}    # type: Dict[str, BaseSimulator]
+        self._chaffsims = {}
 
     def add_temp_simulator(self, sim: BaseSimulator):
         self._tempsims[sim.uid] = sim
         return sim # ADD <- To implement and manage missile objects
+    
+    def add_chaff_simulator(self, sim: BaseSimulator):
+        self._chaffsims[sium.uid] = sim
+        return sim
 
     def reset(self) -> np.ndarray:
         """Resets the state of the environment and returns an initial observation.
@@ -101,6 +106,7 @@ class BaseEnv(gymnasium.Env):
         for sim in self._jsbsims.values():
             sim.reload()
         self._tempsims.clear()
+        self._chaffsims.clear()
         # reset task
         self.task.reset(self)
         obs = self.get_obs()
@@ -135,6 +141,14 @@ class BaseEnv(gymnasium.Env):
                 sim.run()
             for sim in self._tempsims.values():
                 sim.run()
+            for sim in self._chaffsims.values(): # implement chaff
+                sim.run()
+            for missile in self._tempsims.values():
+                if missile.is_done:
+                    continue
+                if (np.linalg.norm(chaff.get_position() - missile.get_position()) <= chaff.effective_radius):
+                    if(np.random.rand() < 0.85):
+                        missile.missed() # Check if Chaff completely delete missile object
         self.task.step(self)
 
         obs = self.get_obs()
@@ -177,8 +191,11 @@ class BaseEnv(gymnasium.Env):
             sim.close()
         for sim in self._tempsims.values():
             sim.close()
+        for sim in self._chaffsims.values():
+            sim.close()
         self._jsbsims.clear()
         self._tempsims.clear()
+        self._chaffsims.clear()
 
     def render(self, mode="txt", filepath='./JSBSimRecording.txt.acmi'):
         """Renders the environment.
@@ -214,6 +231,10 @@ class BaseEnv(gymnasium.Env):
                     if log_msg is not None:
                         f.write(log_msg + "\n")
                 for sim in self._tempsims.values():
+                    log_msg = sim.log()
+                    if log_msg is not None:
+                        f.write(log_msg + "\n")
+                for sim in self._chaffsims.values():
                     log_msg = sim.log()
                     if log_msg is not None:
                         f.write(log_msg + "\n")
