@@ -2,7 +2,8 @@ import numpy as np
 from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
-from ..tasks.multiplecombat_with_missle_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3
+from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3
+from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
 
 class MultipleCombatEnv(BaseEnv):
     """
@@ -30,6 +31,10 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario2(self.config)
         elif taskname == 'scenario3':
             self.task = Scenario3(self.config)
+        elif taskname == 'scenario2_for_KAI':
+            self.task = Scenario2_for_KAI(self.config)
+        elif taskname == 'scenario3_for_KAI':
+            self.task = Scenario3_for_KAI(self.config)
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 

@@ -30,7 +30,7 @@ enm_policy_index = 0
 episode_rewards = 0
 experiment_name = "Scenario1"
 
-env = SingleCombatEnv("1v1/ShootMissile/scenario1")
+env = SingleCombatEnv("1v1/ShootMissile/scenario1_for_KAI")
 
 env.seed(0)
 args = Args()
@@ -47,8 +47,8 @@ for name, param in ego_policy.named_parameters():
     
 print("Start render")
 obs = env.reset()
-# if render:
-#     env.render(mode='txt', filepath=f'{experiment_name}.txt.acmi')
+if render:
+    env.render(mode='txt', filepath=f'{experiment_name}.txt.acmi')
 ego_rnn_states = np.zeros((1, 1, 128), dtype=np.float32)
 masks = np.ones((num_agents // 2, 1))
 enm_obs =  obs[num_agents // 2:, :]
@@ -67,13 +67,13 @@ while True:
     obs, rewards, dones, infos = env.step(actions)
     rewards = rewards[:num_agents // 2, ...]
     episode_rewards += rewards
-    # if render:
-    #     env.render(mode='txt', filepath=f'{experiment_name}.txt.acmi')
+    if render:
+        env.render(mode='txt', filepath=f'{experiment_name}.txt.acmi')
     if dones.all():
         print(infos)
         break
     bloods = [env.agents[agent_id].bloods for agent_id in env.agents.keys()]
-    # print(f"step:{env.current_step}, bloods:{bloods}")
+    print(f"step:{env.current_step}, bloods:{bloods}")
     enm_obs =  obs[num_agents // 2:, ...]
     ego_obs =  obs[:num_agents // 2, ...]
 

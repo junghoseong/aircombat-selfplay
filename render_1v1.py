@@ -28,15 +28,9 @@ render = True
 ego_policy_index = 1040
 enm_policy_index = 0
 episode_rewards = 0
-ego_run_dir = "/home/learning-larr/Projects/kai-aipilot-opensource-June/scripts/results/SingleCombat/1v1/ShootMissile/HierarchySelfplay/ppo/v1/run2"
-enm_run_dir = "/home/learning-larr/Projects/kai-aipilot-opensource-June/scripts/results/SingleCombat/1v1/ShootMissile/HierarchySelfplay/ppo/v1/run2"
-# ego_run_dir = "/home/learning-larr/Projects/kai-aipilot-opensource-June/scripts/results/SingleCombat/1v1/NoWeapon/Selfplay/ppo/v1/wandb/latest-run/files"
-# enm_run_dir = "/home/learning-larr/Projects/kai-aipilot-opensource-June/scripts/results/SingleCombat/1v1/NoWeapon/Selfplay/ppo/v1/wandb/latest-run/files"
+experiment_name = "Scenario1"
 
-experiment_name = ego_run_dir.split('/')[-4]
-
-# env = SingleCombatEnv("1v1/NoWeapon/Selfplay")
-env = SingleCombatEnv("1v1/ShootMissile/HierarchySelfplay")
+env = SingleCombatEnv("1v1/ShootMissile/scenario1")
 
 env.seed(0)
 args = Args()
@@ -45,12 +39,12 @@ ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torc
 enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.eval()
 enm_policy.eval()
-ego_policy.load_state_dict(torch.load(ego_run_dir + f"/actor_latest.pt"))
-enm_policy.load_state_dict(torch.load(enm_run_dir + f"/actor_latest.pt"))
+ego_policy.load_state_dict(torch.load("./checkpoint/1v1_actor.pt"))
+enm_policy.load_state_dict(torch.load("./checkpoint/1v1_actor.pt"))
 
 for name, param in ego_policy.named_parameters():
     print(f"{name}: requires_grad={param.requires_grad}")
-
+    
 print("Start render")
 obs = env.reset()
 if render:
@@ -62,7 +56,7 @@ ego_obs =  obs[:num_agents // 2, :]
 enm_rnn_states = np.zeros_like(ego_rnn_states, dtype=np.float32)
 while True:
     ego_actions, _, ego_rnn_states = ego_policy(ego_obs, ego_rnn_states, masks, deterministic=True)
-    print(ego_actions)
+    # print(ego_actions)
     ego_actions = _t2n(ego_actions)
     ego_rnn_states = _t2n(ego_rnn_states)
     enm_actions, _, enm_rnn_states = enm_policy(enm_obs, enm_rnn_states, masks, deterministic=True)

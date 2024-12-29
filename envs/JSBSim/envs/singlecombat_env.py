@@ -2,7 +2,7 @@ import numpy as np
 from .env_base import BaseEnv
 from ..tasks import SingleCombatTask, SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, \
     HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, HierarchicalSingleCombatTask, Scenario1
-
+from ..tasks.KAI_project_task import Scenario1_for_KAI
 
 class SingleCombatEnv(BaseEnv):
     """
@@ -30,6 +30,8 @@ class SingleCombatEnv(BaseEnv):
             self.task = HierarchicalSingleCombatShootTask(self.config)
         elif taskname == "scenario1":
             self.task = Scenario1(self.config)        
+        elif taskname == "scenario1_for_KAI":
+            self.task = Scenario1_for_KAI(self.config)        
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 

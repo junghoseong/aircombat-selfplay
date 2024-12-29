@@ -31,7 +31,7 @@ enm_policy_index = 0
 episode_rewards = 0
 experiment_name = "Scenario3"
 
-env = MultipleCombatEnv("2v2/scenario3")
+env = MultipleCombatEnv("2v2/scenario3_for_KAI")
 env.seed(0)
 args = Args()
 
