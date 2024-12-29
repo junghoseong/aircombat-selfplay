@@ -92,7 +92,7 @@ class BaseEnv(gymnasium.Env):
         return sim # ADD <- To implement and manage missile objects
     
     def add_chaff_simulator(self, sim: BaseSimulator):
-        self._chaffsims[sium.uid] = sim
+        self._chaffsims[sim.uid] = sim
         return sim
 
     def reset(self) -> np.ndarray:
@@ -146,9 +146,12 @@ class BaseEnv(gymnasium.Env):
             for missile in self._tempsims.values():
                 if missile.is_done:
                     continue
-                if (np.linalg.norm(chaff.get_position() - missile.get_position()) <= chaff.effective_radius):
-                    if(np.random.rand() < 0.85):
-                        missile.missed() # Check if Chaff completely delete missile object
+                for chaff in self._chaffsims.values():
+                    if chaff.is_done:
+                        continue
+                    if (np.linalg.norm(chaff.get_position() - missile.get_position()) <= chaff.effective_radius):
+                        if(np.random.rand() < 0.85):
+                            missile.missed() # Check if Chaff completely delete missile object
         self.task.step(self)
 
         obs = self.get_obs()
