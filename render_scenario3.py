@@ -40,8 +40,8 @@ ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torc
 enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.eval()
 enm_policy.eval()
-ego_policy.load_state_dict(torch.load("./checkpoint/4v4_actor.pt"))
-enm_policy.load_state_dict(torch.load("./checkpoint/4v4_actor.pt"))
+ego_policy.load_state_dict(torch.load("/home/son/kai_ai/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario3/mappo/v1/wandb/run-20241229_004911-a8s6inx3/files/actor_latest.pt"))
+enm_policy.load_state_dict(torch.load("/home/son/kai_ai/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario3/mappo/v1/wandb/run-20241229_004911-a8s6inx3/files/actor_latest.pt"))
 
 print("Start render")
 obs, _ = env.reset()

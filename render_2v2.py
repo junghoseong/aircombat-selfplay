@@ -29,8 +29,8 @@ render = True
 ego_policy_index = 1040
 enm_policy_index = 0
 episode_rewards = 0
-ego_run_dir = "/home/learning-larr/Projects/kai-aipilot-opensource-June/scripts/results/SingleCombat/1v1/ShootMissile/HierarchySelfplay/ppo/v1/run2"
-enm_run_dir = "/home/learning-larr/Projects/kai-aipilot-opensource-June/scripts/results/SingleCombat/1v1/ShootMissile/HierarchySelfplay/ppo/v1/run2"
+ego_run_dir = "/home/son/kai_ai/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/v1/wandb/run-20241228_222528-iiq7wk6j/files"
+enm_run_dir = "/home/son/kai_ai/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/v1/wandb/run-20241228_222528-iiq7wk6j/files"
 experiment_name = ego_run_dir.split('/')[-4]
 
 env = MultipleCombatEnv("2v2/scenario2")

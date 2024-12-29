@@ -1,1 +1,0 @@
-{"_wandb": {"runtime": 87}, "value_loss": 55.114640545845035, "_timestamp": 1735379671.3268695, "policy_loss": -0.0012227952480316161, "policy_entropy_loss": -0.0005961196322459728, "actor_grad_norm": 0.17629696875810624, "critic_grad_norm": 19.023072719573975, "ratio": 1.0008387118577957, "average_episode_rewards": -Infinity, "_runtime": 61.65027141571045, "_step": 36000}
