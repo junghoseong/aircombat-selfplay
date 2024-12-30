@@ -347,7 +347,7 @@ class ChaffSimulator(BaseSimulator):
         self.parent_aircraft = None  # type: AircraftSimulator
 
         self._t_max = 20             # unit: s
-        self._effective_radius = 200 # unit: m
+        self._effective_radius = 300 # unit: m
 
     @property
     def is_alive(self):
@@ -518,7 +518,7 @@ class MissileSimulator(BaseSimulator):
         action, distance = self._guidance()
         self._distance_increment.append(distance > self._distance_pre)
         self._distance_pre = distance
-        if distance < self._Rc and self.target_aircraft.is_alive:
+        if distance < self._Rc and self.target_aircraft.is_alive and self.__status is not MissileSimulator.MISS:
             self.__status = MissileSimulator.HIT
             self.target_aircraft.shotdown()
         elif (self._t > self._t_max) or (np.linalg.norm(self.get_velocity()) < self._v_min) \

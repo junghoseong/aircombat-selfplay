@@ -26,10 +26,10 @@ class SingleCombatTask(BaseTask):
         ]
 
         self.termination_conditions = [
-            # LowAltitude(self.config),
-            # ExtremeState(self.config),
-            # Overload(self.config),
-            # SafeReturn(self.config),
+            LowAltitude(self.config),
+            ExtremeState(self.config),
+            Overload(self.config),
+            SafeReturn(self.config),
             Timeout(self.config),
         ]
 

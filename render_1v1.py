@@ -7,6 +7,9 @@ from algorithms.ppo.ppo_actor import PPOActor
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+
 class Args:
     def __init__(self) -> None:
         self.gain = 0.01
@@ -32,15 +35,15 @@ experiment_name = "Scenario1"
 
 env = SingleCombatEnv("1v1/ShootMissile/scenario1")
 
-env.seed(0)
+env.seed(10)
 args = Args()
 
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.eval()
 enm_policy.eval()
-ego_policy.load_state_dict(torch.load("./checkpoint/1v1_actor.pt"))
-enm_policy.load_state_dict(torch.load("./checkpoint/1v1_actor.pt"))
+ego_policy.load_state_dict(torch.load("./checkpoint/actor_25.pt"))
+enm_policy.load_state_dict(torch.load("./checkpoint/actor_2.pt"))
 
 for name, param in ego_policy.named_parameters():
     print(f"{name}: requires_grad={param.requires_grad}")

@@ -40,8 +40,8 @@ ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torc
 enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.eval()
 enm_policy.eval()
-ego_policy.load_state_dict(torch.load("./checkpoint/4v4_actor.pt"))
-enm_policy.load_state_dict(torch.load("./checkpoint/4v4_actor.pt"))
+ego_policy.load_state_dict(torch.load("./checkpoint/actor_25.pt"))
+enm_policy.load_state_dict(torch.load("./checkpoint/actor_2.pt"))
 
 print("Start render")
 obs, _ = env.reset()
