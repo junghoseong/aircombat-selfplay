@@ -1,2 +1,5 @@
 ### Ignore file ###
 *.pyc
+scripts/results/
+__pycache__
+**/__pycache__

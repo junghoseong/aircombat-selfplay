@@ -6,6 +6,7 @@ from .base_runner import Runner, ReplayBuffer
 from .jsbsim_runner import JSBSimRunner
 
 
+
 def _t2n(x):
     return x.detach().cpu().numpy()
 
@@ -19,6 +20,7 @@ class SelfplayJSBSimRunner(JSBSimRunner):
         self.act_space = self.envs.action_space
         self.num_agents = self.envs.num_agents
         self.num_opponents = self.all_args.n_choose_opponents
+        
         assert self.eval_episodes >= self.num_opponents, \
         f"Number of evaluation episodes:{self.eval_episodes} should be greater than number of opponents:{self.num_opponents}"
         self.init_elo = self.all_args.init_elo
@@ -32,6 +34,7 @@ class SelfplayJSBSimRunner(JSBSimRunner):
             raise NotImplementedError
         self.policy = Policy(self.all_args, self.obs_space, self.act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
+
 
         # buffer
         self.buffer = ReplayBuffer(self.all_args, self.num_agents // 2, self.obs_space, self.act_space)
@@ -245,6 +248,7 @@ class SelfplayJSBSimRunner(JSBSimRunner):
         # [Selfplay] save policy & performance
         torch.save(policy_actor_state_dict, str(self.save_dir) + f'/actor_{episode}.pt')
         self.policy_pool[str(episode)] = self.latest_elo
+        
 
     def reset_opponent(self):
         choose_opponents = []

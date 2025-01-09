@@ -151,9 +151,11 @@ def main(args):
     # run experiments
     if all_args.env_name == "MultipleCombat":
         runner = ShareJSBSimRunner(config)
+        
     else:
         if all_args.use_selfplay:
             from runner.selfplay_jsbsim_runner import SelfplayJSBSimRunner as Runner
+            
         else:
             from runner.jsbsim_runner import JSBSimRunner as Runner
         runner = Runner(config)
