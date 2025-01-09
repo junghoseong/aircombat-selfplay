@@ -21,6 +21,7 @@ class MultipleCombatEnv(BaseEnv):
 
     def load_task(self):
         taskname = getattr(self.config, 'task', None)
+        print(taskname)
         if taskname == 'multiplecombat':
             self.task = MultipleCombatTask(self.config)
         elif taskname == 'hierarchical_multiplecombat':
