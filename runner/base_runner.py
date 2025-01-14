@@ -29,6 +29,7 @@ class Runner(object):
         self.buffer_size = self.all_args.buffer_size
         self.use_wandb = self.all_args.use_wandb
         self.intrinsic_ratio = self.all_args.intrinsic_ratio
+        self.mutual_support = self.all_args.mutual_support
 
         # interval
         self.save_interval = self.all_args.save_interval
@@ -94,8 +95,12 @@ class Runner(object):
     def train(self):
         self.policy.prep_training()
         train_infos = self.trainer.train(self.policy, self.buffer)
+        #train_infos_disc = self.disc.train(self.buffer)
         self.buffer.after_update()
-        return train_infos, train_infos_disc
+        if self.mutual_support:
+            return train_infos, train_infos_disc
+        else:
+            return train_infos
 
     def save(self):
         policy_actor = self.policy.actor

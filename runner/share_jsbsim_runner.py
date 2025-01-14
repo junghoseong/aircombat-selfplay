@@ -21,6 +21,7 @@ class ShareJSBSimRunner(Runner):
         self.act_space = self.envs.action_space
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
+        self.mutual_support = self.all_args.mutual_support
 
         # policy & algorithm
         if self.algorithm_name == "mappo":
@@ -31,9 +32,10 @@ class ShareJSBSimRunner(Runner):
         self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
         
-        from algorithms.utils.discriminator import Discriminator
-        self.disc = Discriminator(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
-        self.intrinsic_ratio = self.all_args.intrinsic_ratio
+        if self.mutual_support:
+            from algorithms.utils.discriminator import Discriminator
+            self.disc = Discriminator(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+            self.intrinsic_ratio = self.all_args.intrinsic_ratio
 
         # buffer
         if self.use_selfplay:
@@ -90,11 +92,13 @@ class ShareJSBSimRunner(Runner):
                 
                 next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions)
                 
-                # Compute intrinsic rewards based on the current state
-                int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
-                rewards += int_rewards * self.intrinsic_ratio
+                if self.mutual_support:
+                    # Compute intrinsic rewards based on the current state
+                    int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
+                    rewards += int_rewards * self.intrinsic_ratio
                 
                 # insert data into buffer
+                data = obs, share_obs, actions, rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
                 self.insert(data)
                 
                 # Update the state for the next step
@@ -102,7 +106,10 @@ class ShareJSBSimRunner(Runner):
 
             # compute return and update network
             self.compute()
-            train_infos, train_infos_disc = self.train()
+            if self.mutual_support:
+                train_infos, train_infos_disc = self.train()
+            else:
+                train_infos = self.train()
 
             # post process
             self.total_num_steps = (episode + 1) * self.buffer_size * self.n_rollout_threads
@@ -127,7 +134,8 @@ class ShareJSBSimRunner(Runner):
                 train_infos["average_episode_rewards"] = self.buffer.rewards.sum() / (self.buffer.masks == False).sum()
                 logging.info("average episode rewards is {}".format(train_infos["average_episode_rewards"]))
                 self.log_info(train_infos, self.total_num_steps)
-                self.log_info(train_infos_disc, self.total_num_steps)
+                if self.mutual_support:
+                    self.log_info(train_infos_disc, self.total_num_steps)
 
             # eval
             if episode % self.eval_interval == 0 and self.use_eval:
@@ -364,9 +372,13 @@ class ShareJSBSimRunner(Runner):
     def train(self):
         self.policy.prep_training()
         train_infos = self.trainer.train(self.policy, self.buffer)
-        train_infos_disc = self.disc.train(self.buffer)
+        if self.mutual_support:
+            train_infos_disc = self.disc.train(self.buffer)
         self.buffer.after_update()
-        return train_infos, train_infos_disc
+        if self.mutual_support:
+            return train_infos, train_infos_disc
+        else:
+            return train_infos
 
     def save(self, episode):
         policy_actor_state_dict = self.policy.actor.state_dict()
@@ -374,13 +386,15 @@ class ShareJSBSimRunner(Runner):
         policy_critic_state_dict = self.policy.critic.state_dict()
         torch.save(policy_critic_state_dict, str(self.save_dir) + '/critic_latest.pt')
         
-        discriminator_state_dict = self.disc.state_dict()
-        torch.save(discriminator_state_dict, str(self.save_dir) + '/discriminator_latest.pt')
+        if self.mutual_support:
+            discriminator_state_dict = self.disc.state_dict()
+            torch.save(discriminator_state_dict, str(self.save_dir) + '/discriminator_latest.pt')
         
         # [Selfplay] save policy & performance
         if self.use_selfplay:
             torch.save(policy_actor_state_dict, str(self.save_dir) + f'/actor_{episode}.pt')
-            torch.save(discriminator_state_dict, str(self.save_dir) + f'/discriminator_{episode}.pt')
+            if self.mutual_support:
+                torch.save(discriminator_state_dict, str(self.save_dir) + f'/discriminator_{episode}.pt')
             self.policy_pool[str(episode)] = self.all_args.init_elo
 
     def reset_opponent(self):

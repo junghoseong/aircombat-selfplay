@@ -128,6 +128,8 @@ def _get_network_config(parser: argparse.ArgumentParser):
             by default 0.01, use the gain # of last action layer
         --use-prior
             by default False, applying strong constraints using human prior knowledge, use only for arming launches
+        --mutual-support
+            by default False, use the mutual information-based intrinsic rewards to boost cooperative decision-making
         --intrinsic-ratio
             by default 0.01, adjusting the ratio of intrinsic rewards  
     """
@@ -144,6 +146,8 @@ def _get_network_config(parser: argparse.ArgumentParser):
                        help="The gain # of last action layer")
     group.add_argument("--use-prior", action='store_true', default=False,
                        help="Whether to use prior hunman info to update network, use only on missile shoot task")
+    group.add_argument('--mutual-support', type=bool, default=False,
+                       help="Whether to use mutual support to boost cooperative decision-making")
     group.add_argument("--intrinsic-ratio", type=float, default=0.01,
                        help="The ratio of intrinsic curiosity reward")
     return parser

@@ -300,7 +300,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
                 if avail[0]:
                     target = self.get_target(agent)
                     enemy.bloods -= 5
-                    print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
+                    #print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
                     self.remaining_gun[agent_id] -= 1
             
             if shoot_flag_AIM_120B and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage long-range missile duration

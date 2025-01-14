@@ -160,6 +160,10 @@ class BaseEnv(gymnasium.Env):
         for agent_id in self.agents.keys():
             done, info = self.task.get_termination(self, agent_id, info)
             dones[agent_id] = [done]
+            
+            if done == True:
+                if agent_id[0] == 'A':
+                    print(agent_id, info['done_condition'])
 
         rewards = {}
         for agent_id in self.agents.keys():

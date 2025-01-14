@@ -1,6 +1,6 @@
 from .termination_condition_base import BaseTerminationCondition
 from ..core.catalog import Catalog as c
-
+from colorama import Fore
 
 class ExtremeState(BaseTerminationCondition):
     """
@@ -27,5 +27,6 @@ class ExtremeState(BaseTerminationCondition):
         if done:
             env.agents[agent_id].crash()
             self.log(f'{agent_id} is on an extreme state! Total Steps={env.current_step}')
+            info['done_condition'] = Fore.LIGHTRED_EX + f'{agent_id} is on an extreme state! Total Steps={env.current_step}'
         success = False
         return done, success, info

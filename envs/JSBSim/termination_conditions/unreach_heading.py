@@ -1,7 +1,7 @@
 import math
 from ..core.catalog import Catalog as c
 from .termination_condition_base import BaseTerminationCondition
-
+from colorama import Fore
 
 class UnreachHeading(BaseTerminationCondition):
     """
@@ -60,5 +60,6 @@ class UnreachHeading(BaseTerminationCondition):
         if done:
             self.log(f'agent[{agent_id}] unreached heading. Total Steps={env.current_step}')
             info['heading_turn_counts'] = env.heading_turn_counts
+            info['done_condition'] = Fore.LIGHTRED_EX + f'{agent_id} acceleration is too high! Total Steps={env.current_step}'
         success = False
         return done, success, info
