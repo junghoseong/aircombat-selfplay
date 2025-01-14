@@ -1,7 +1,5 @@
-# Light Aircraft Game: A lightweight, scalable, gym-wrapped aircraft competitive environment with baseline reinforcement learning algorithms
-We provide a competitive environment for red and blue aircrafts games, which includes single control setting, 1v1 setting and 2v2 setting. The flight dynamics based on JSBSIM, and missile dynamics based on our implementation of proportional guidance. We also provide ppo and mappo implementation for self-play or vs-baseline training. 
-
-![fromework](assets/framework.jpg)
+# Boosting Cooperative Decision-Making in Air Combat Environment Through Action Representation Learning and Mutual Support
+We implemented a cooperative multi-agent reinforcement learning environment in the Air Combat Environment. This environment includes various scenarios such as 1v1, 2v2, and 4v4, and supports multiple armaments such as missiles, guns, and chaff.
 
 ## Install 
 
@@ -17,31 +15,6 @@ pip install torch pymap3d jsbsim==1.1.6 geographiclib gym==0.20.0 wandb icecream
 ```
 ## Envs
 We provide all task configs in  `envs/JSBSim/configs`, each config corresponds to a task.
-
-### SingleControl
-SingleControl env includes single agent heading task, whose goal is to train agent fly according to the given direction, altitude and velocity. The trained agent can be used to design baselines or become the low level policy of the following combat tasks. We can designed two baselines, as shown in the video:
-
-![singlecontrol](assets/1_control.gif)
-
-The red is manever_agent, flying in a triangular trajectory. The blue is pursue agent, constantly tracking the red agent. You can reproduce this by `python envs/JSBSim/test/test_baseline_use_env.py`.
-
-
-### SingleCombat
-SingleCombat env is for two agents 1v1 competitive tasks, including NoWeapon tasks and Missile tasks. We provide self-play setting and vs-baseline setting for each task. Due to the fact that learning to fly and combat simultaneously is non-trival, we also provide a hierarchical framework, where the upper level control gives the direction, altitude and velocity, the low level control use the model trained in SingleControl. 
-
-
-- NoWeapon tasks require the agent to be in an posture advantage, which means the agent need to fly towards the tail of its opponent and maintain a proper distance. 
-- Missile tasks require the agent learn to shoot down oppoents and dodge missiles. Missile engines are based on proportional guidance, we provide a document for our impletation [here](docs/missile_engine). We can futher divide missile tasks into into two categories:
-  - Dodge missile task. Missile launches are controled by rules, train agent learn to dodge missile.
-  - Shoot missile task. Missile launches are also learning goals. But training from scratch to learn launching missiles is not trival, we need to introduce some prior knowledge for policy learning. We use property that conjugate prior of binomial distribution is beta distribution to address this issue, refer to [here](docs/parameterized_shooting.md) for more details.  A demo for shoot missile task:
-
-![1v1_missile](assets/1v1_missile.gif)
-
-
-### MultiCombat
-MultiCombat env is for four agents 2v2 competitive tasks. The setting is same as SingleCombat. A demo for non-weapon tasks: 
-
-![2v2_posture](assets/2v2_posture.gif)
 
 ## Quick Start
 ### Training
