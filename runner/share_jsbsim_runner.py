@@ -30,6 +30,10 @@ class ShareJSBSimRunner(Runner):
             raise NotImplementedError
         self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
+        
+        from algorithms.utils.discriminator import Discriminator
+        self.disc = Discriminator(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+        self.intrinsic_ratio = self.all_args.intrinsic_ratio
 
         # buffer
         if self.use_selfplay:
@@ -72,22 +76,33 @@ class ShareJSBSimRunner(Runner):
         episodes = self.num_env_steps // self.buffer_size // self.n_rollout_threads
 
         for episode in range(episodes):
+            
+            obs, share_obs = None, None
 
-            for step in range(self.buffer_size):
+            for step in range(self.buffer_size - 1):
                 # Sample actions
                 values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
 
-                # Obser reward and next obs
-                obs, share_obs, rewards, dones, infos = self.envs.step(actions)
-
-                data = obs, share_obs, actions, rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
-
+                # Initialize the state if it is the first step
+                if obs is None and share_obs is None:
+                    obs, share_obs, rewards, dones, infors = self.envs.step(actions)
+                    continue # Skip further processing for the first step
+                
+                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions)
+                
+                # Compute intrinsic rewards based on the current state
+                int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
+                rewards += int_rewards * self.intrinsic_ratio
+                
                 # insert data into buffer
                 self.insert(data)
+                
+                # Update the state for the next step
+                obs, share_obs = next_obs, next_share_obs
 
             # compute return and update network
             self.compute()
-            train_infos = self.train()
+            train_infos, train_infos_disc = self.train()
 
             # post process
             self.total_num_steps = (episode + 1) * self.buffer_size * self.n_rollout_threads
@@ -112,6 +127,7 @@ class ShareJSBSimRunner(Runner):
                 train_infos["average_episode_rewards"] = self.buffer.rewards.sum() / (self.buffer.masks == False).sum()
                 logging.info("average episode rewards is {}".format(train_infos["average_episode_rewards"]))
                 self.log_info(train_infos, self.total_num_steps)
+                self.log_info(train_infos_disc, self.total_num_steps)
 
             # eval
             if episode % self.eval_interval == 0 and self.use_eval:
@@ -344,15 +360,27 @@ class ShareJSBSimRunner(Runner):
         render_infos = {}
         render_infos['render_episode_reward'] = render_episode_rewards
         logging.info("render episode reward of agent: " + str(render_infos['render_episode_reward']))
+        
+    def train(self):
+        self.policy.prep_training()
+        train_infos = self.trainer.train(self.policy, self.buffer)
+        train_infos_disc = self.disc.train(self.buffer)
+        self.buffer.after_update()
+        return train_infos, train_infos_disc
 
     def save(self, episode):
         policy_actor_state_dict = self.policy.actor.state_dict()
         torch.save(policy_actor_state_dict, str(self.save_dir) + '/actor_latest.pt')
         policy_critic_state_dict = self.policy.critic.state_dict()
         torch.save(policy_critic_state_dict, str(self.save_dir) + '/critic_latest.pt')
+        
+        discriminator_state_dict = self.disc.state_dict()
+        torch.save(discriminator_state_dict, str(self.save_dir) + '/discriminator_latest.pt')
+        
         # [Selfplay] save policy & performance
         if self.use_selfplay:
             torch.save(policy_actor_state_dict, str(self.save_dir) + f'/actor_{episode}.pt')
+            torch.save(discriminator_state_dict, str(self.save_dir) + f'/discriminator_{episode}.pt')
             self.policy_pool[str(episode)] = self.all_args.init_elo
 
     def reset_opponent(self):

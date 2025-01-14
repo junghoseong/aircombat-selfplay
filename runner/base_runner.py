@@ -28,6 +28,7 @@ class Runner(object):
         self.n_eval_rollout_threads = self.all_args.n_eval_rollout_threads
         self.buffer_size = self.all_args.buffer_size
         self.use_wandb = self.all_args.use_wandb
+        self.intrinsic_ratio = self.all_args.intrinsic_ratio
 
         # interval
         self.save_interval = self.all_args.save_interval
@@ -94,7 +95,7 @@ class Runner(object):
         self.policy.prep_training()
         train_infos = self.trainer.train(self.policy, self.buffer)
         self.buffer.after_update()
-        return train_infos
+        return train_infos, train_infos_disc
 
     def save(self):
         policy_actor = self.policy.actor

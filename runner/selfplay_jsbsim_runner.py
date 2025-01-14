@@ -19,6 +19,7 @@ class SelfplayJSBSimRunner(JSBSimRunner):
         self.act_space = self.envs.action_space
         self.num_agents = self.envs.num_agents
         self.num_opponents = self.all_args.n_choose_opponents
+        
         assert self.eval_episodes >= self.num_opponents, \
         f"Number of evaluation episodes:{self.eval_episodes} should be greater than number of opponents:{self.num_opponents}"
         self.init_elo = self.all_args.init_elo

@@ -447,3 +447,54 @@ class SharedReplayBuffer(ReplayBuffer):
             yield obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, \
                 old_action_log_probs_batch, advantages_batch, returns_batch, value_preds_batch, \
                 rnn_states_actor_batch, rnn_states_critic_batch
+
+
+
+    def random_batch_generator(self, num_mini_batch: int, data_chunk_length: int):
+        """
+        obs shape : (max_buffer_size, rollout_threads, agent_num, ...)
+        This function generates mini-batches by dividing the data into `num_mini_batch` parts
+        and shuffling only along the first dimension.
+        Args:
+            num_mini_batch (int): The number of mini-batches to create.
+            data_chunk_length (int): Not directly used in the function, but could be related to the data segmentation.
+        """
+        obs_batch = self.obs[:-1]
+        share_obs_batch = self.share_obs[:-1]
+        actions_batch = self.actions
+        masks_batch = self.masks[:-1]
+        active_masks_batch = self.active_masks[:-1]
+        rnn_states_actor_batch = np.squeeze(self.rnn_states_actor[:-1], axis=3)
+
+        # Newly added: Next time-step observations
+        next_obs_batch = self.obs[1:]  # Corresponding to obs[t+1]
+
+        # Extract data shape and shuffle along the first dimension
+        max_buffer_size, rollout_threads, agent_num, _ = obs_batch.shape
+
+        mini_batch_size = max_buffer_size // num_mini_batch  # Size of each mini-batch
+        rand = torch.randperm(max_buffer_size)  # Shuffle indices along the first dimension
+
+        # Create a sampler: A list of index sets for each mini-batch
+        sampler = [rand[i * mini_batch_size:(i + 1) * mini_batch_size] for i in range(num_mini_batch)]
+
+        for indices in sampler:
+            # Slice the data using indices to create mini-batches
+            obs_batch_sample = obs_batch[indices, :, :, :]
+            next_obs_batch_sample = next_obs_batch[indices, :, :, :]
+            share_obs_batch_sample = share_obs_batch[indices, :, :, :]
+            actions_batch_sample = actions_batch[indices, :, :, :]
+            masks_batch_sample = masks_batch[indices, :, :, :]
+            active_masks_batch_sample = active_masks_batch[indices, :, :, :]
+            rnn_states_actor_batch_sample = rnn_states_actor_batch[indices, :, :, :]
+
+            # Yield each mini-batch
+            yield (
+                obs_batch_sample,
+                next_obs_batch_sample,
+                share_obs_batch_sample,
+                actions_batch_sample,
+                masks_batch_sample,
+                active_masks_batch_sample,
+                rnn_states_actor_batch_sample
+            )
