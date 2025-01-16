@@ -15,7 +15,7 @@ acceleration_limit_z: 10.0
 # aircraft config
 aircraft_configs: {
   A0100: {
-    color: Red,
+    color: Blue,
     model: f16,
     max_heading_increment: 180,       # degree
     max_altitude_increment: 7000,     # feet

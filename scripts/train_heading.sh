@@ -2,7 +2,7 @@
 env="SingleControl"
 scenario="1/heading"
 algo="ppo"
-exp="cch"
+exp="jhs"
 seed=5
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"

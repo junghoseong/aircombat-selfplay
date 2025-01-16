@@ -43,6 +43,7 @@ class SafeReturn(BaseTerminationCondition):
                 and all([not missile.is_alive for missile in env.agents[agent_id].under_missiles]):
             self.log(f'{agent_id} mission completed! Total Steps={env.current_step}')
             info['done_condition'] = Fore.LIGHTGREEN_EX + f'{agent_id} mission completed! Total Steps={env.current_step}'
+            
             return True, True, info
 
         else:

@@ -1,6 +1,6 @@
 from .env_base import BaseEnv
 from ..tasks.heading_task import HeadingTask
-
+from ..tasks.approach_task import ApproachTask
 
 class SingleControlEnv(BaseEnv):
     """
@@ -16,6 +16,8 @@ class SingleControlEnv(BaseEnv):
         taskname = getattr(self.config, 'task', None)
         if taskname == 'heading':
             self.task = HeadingTask(self.config)
+        elif taskname == 'approach':
+            self.task = ApproachTask(self.config)
         else:
             raise NotImplementedError(f'Unknown taskname: {taskname}')
 

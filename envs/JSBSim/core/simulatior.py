@@ -608,20 +608,35 @@ class AIM_9M(MissileSimulator):
                  dt=1 / 12):
         super().__init__(uid=uid, color=color, model="AIM-9M", dt=dt)
         
-        # missile parameters (for AIM-9M)
-        self._g = 9.81          # gravitational acceleration
-        self._t_max = 2.63      # time limitation of missile life (t_max=Range/Speed=7,000/2,662)
-        self._t_thrust = 6      # time limitation of engine (seconds) (given)
-        self._Isp = 1436        # average specific impulse (Isp=Thrust/g_0*dm=8451/(6*9.81))
-        self._Length = 2.87     # provided (standard specficiation)
-        self._Diameter = 0.13   # provided (standard specficiation) 
-        self._cD = 0.02         # aerodynamic drag factor (항력계수)
-        self._m0 = 87           # mass, unit: kg (in database : 335 lbs)
-        self._dm = 6            # mass loss rate, unit: kg/s (Assume: constant)
-        self._K = 5             # proportionality constant of proportional navigation
-        self._nyz_max = 50      # max overload (provided)
-        self._Rc = 5            # radius of explosion, unit: m (Assume: 5m radius)
-        self._v_min = 150       # minimum velocity, unit: m/s
+        # # missile parameters (for AIM-9M)
+        # self._g = 9.81          # gravitational acceleration
+        # self._t_max = 2.63      # time limitation of missile life (t_max=Range/Speed=7,000/2,662)
+        # self._t_thrust = 6      # time limitation of engine (seconds) (given)
+        # self._Isp = 1436        # average specific impulse (Isp=Thrust/g_0*dm=8451/(6*9.81))
+        # self._Length = 2.87     # provided (standard specficiation)
+        # self._Diameter = 0.13   # provided (standard specficiation) 
+        # self._cD = 0.02         # aerodynamic drag factor (항력계수)
+        # self._m0 = 87           # mass, unit: kg (in database : 335 lbs)
+        # self._dm = 6            # mass loss rate, unit: kg/s (Assume: constant)
+        # self._K = 5             # proportionality constant of proportional navigation
+        # self._nyz_max = 50      # max overload (provided)
+        # self._Rc = 5            # radius of explosion, unit: m (Assume: 5m radius)
+        # self._v_min = 150       # minimum velocity, unit: m/s
+        
+        # missile parameters (for AIM-9L)
+        self._g = 9.81      # gravitational acceleration
+        self._t_max = 60    # time limitation of missile life
+        self._t_thrust = 3  # time limitation of engine
+        self._Isp = 120     # average specific impulse
+        self._Length = 2.87
+        self._Diameter = 0.127
+        self._cD = 0.4      # aerodynamic drag factor
+        self._m0 = 84       # mass, unit: kg
+        self._dm = 6        # mass loss rate, unit: kg/s
+        self._K = 3         # proportionality constant of proportional navigation
+        self._nyz_max = 30  # max overload
+        self._Rc = 300      # radius of explosion, unit: m
+        self._v_min = 150   # minimun velocity, unit: m/s
         
 class AIM_120B(MissileSimulator):
     def __init__(self,
