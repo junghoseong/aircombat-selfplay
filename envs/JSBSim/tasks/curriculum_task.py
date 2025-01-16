@@ -7,9 +7,6 @@ from ..termination_conditions import ExtremeState, LowAltitude, Overload, Timeou
 
 
 class CurriculumTask(BaseTask):
-    '''
-    Control target heading with discrete action space
-    '''
     def __init__(self, config):
         super().__init__(config)
         self.use_baseline = getattr(self.config, 'use_baseline', False)
