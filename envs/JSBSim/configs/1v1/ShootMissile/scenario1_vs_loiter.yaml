@@ -1,5 +1,5 @@
 # task config
-task: scenario1
+task: scenario1_curriculum
 # simulation config
 sim_freq: 60
 agent_interaction_steps: 6 # step 1 / 60s

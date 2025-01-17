@@ -1,3 +1,3 @@
 from .heading_task import HeadingTask
 from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask
-from .singlecombat_with_missile_task import SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, Scenario1
+from .singlecombat_with_missile_task import SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, Scenario1, Scenario1_curriculum

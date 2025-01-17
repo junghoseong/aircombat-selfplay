@@ -27,12 +27,13 @@ class Overload(BaseTerminationCondition):
         Returns:
             (tuple): (done, success, info)
         """
+        success = True
         done = self._judge_overload(env.agents[agent_id])
         if done:
             env.agents[agent_id].crash()
             self.log(f'{agent_id} acceleration is too high! Total Steps={env.current_step}')
             info['done_condition'] = Fore.LIGHTRED_EX + f'{agent_id} acceleration is too high! Total Steps={env.current_step}'
-        success = False
+            success=False
         return done, success, info
 
     def _judge_overload(self, sim):

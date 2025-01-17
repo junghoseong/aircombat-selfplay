@@ -2,7 +2,7 @@ import os
 import yaml
 import pymap3d
 import numpy as np
-
+import math
 
 def parse_config(filename):
     """Parse JSBSim config file.
@@ -116,3 +116,35 @@ def in_range_rad(angle):
     if angle > np.pi:
         angle -= 2 * np.pi
     return angle
+
+def calculate_coordinates_heading_by_curriculum(center_lat, center_lon, radius_km, angles_deg):
+    R = 6371  # 지구 평균 반지름 (km)
+    d = radius_km / R  # 구면 거리 (라디안 단위)
+    center_lat_rad = math.radians(center_lat)
+    center_lon_rad = math.radians(center_lon)
+    
+    coordinates = []
+    for angle_deg in angles_deg:
+        # 각도를 아래쪽이 0도로 설정하고 반시계 방향으로 증가
+        theta = math.radians(180 - angle_deg)  # 그대로 각도를 사용
+        
+        # 새로운 위도 계산
+        new_lat_rad = math.asin(
+            math.sin(center_lat_rad) * math.cos(d) +
+            math.cos(center_lat_rad) * math.sin(d) * math.cos(theta)
+        )
+        
+        # 새로운 경도 계산
+        new_lon_rad = center_lon_rad + math.atan2(
+            math.sin(theta) * math.sin(d) * math.cos(center_lat_rad),
+            math.cos(d) - math.sin(center_lat_rad) * math.sin(new_lat_rad)
+        )
+        
+        # 라디안 -> 도(degree) 변환
+        new_lat = math.degrees(new_lat_rad)
+        new_lon = math.degrees(new_lon_rad)
+        new_heading  = 2*angle_deg if 0 <= angle_deg < 90 else 360-2*angle_deg
+        
+        coordinates.append((new_lat, new_lon, new_heading))
+    
+    return coordinates

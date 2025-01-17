@@ -18,7 +18,10 @@ class SingleCombatTask(BaseTask):
         self.use_baseline = getattr(self.config, 'use_baseline', False)
         self.use_artillery = getattr(self.config, 'use_artillery', False)
         if self.use_baseline:
-            self.baseline_agent = self.load_agent(self.config.baseline_type)
+            for index, (key, value) in enumerate(self.config.aircraft_configs.items()):
+                if value['color'] == 'Red':
+                    agent_id = index
+            self.baseline_agent = self.load_agent(self.config.baseline_type, agent_id)
 
         self.reward_functions = [
             AltitudeReward(self.config),
@@ -189,15 +192,15 @@ class SingleCombatTask(BaseTask):
             self._agent_die_flag[agent_id] = not env.agents[agent_id].is_alive
             return super().get_reward(env, agent_id, info=info)
 
-    def load_agent(self, name):
+    def load_agent(self, name, agent_id):
         if name == 'pursue':
-            return PursueAgent()
+            return PursueAgent(agent_id=agent_id)
         elif name == 'maneuver':
-            return ManeuverAgent(agent_id=1, maneuver='n')
+            return ManeuverAgent(agent_id=agent_id, maneuver='triangle')
         elif name == 'dodge':
-            return DodgeMissileAgent()
+            return DodgeMissileAgent(agent_id=agent_id)
         elif name == 'straight':
-            return StraightFlyAgent()
+            return StraightFlyAgent(agent_id=agent_id)
         else:
             raise NotImplementedError
 
@@ -206,7 +209,7 @@ class HierarchicalSingleCombatTask(SingleCombatTask):
     def __init__(self, config: str):
         super().__init__(config)
         self.lowlevel_policy = BaselineActor()
-        self.lowlevel_policy.load_state_dict(torch.load(get_root_dir() + '/model/baseline_model.pt', map_location=torch.device('cpu')))
+        self.lowlevel_policy.load_state_dict(torch.load(get_root_dir() + '/model/baseline_model.pt', map_location=torch.device('cuda')))
         self.lowlevel_policy.eval()
         self.norm_delta_altitude = np.array([0.1, 0, -0.1])
         self.norm_delta_heading = np.array([-np.pi / 6, -np.pi / 12, 0, np.pi / 12, np.pi / 6])

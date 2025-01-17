@@ -16,7 +16,7 @@ from envs.JSBSim.model.baseline import BaselineAgent, PursueAgent, ManeuverAgent
 
 env = SingleControlEnv(config_name='1/approach')
 obs = env.reset()
-env.render(filepath="control.txt.acmi")
+env.render(filepath="loiter.txt.acmi")
 agent0 = ManeuverAgent(agent_id=0, maneuver='triangle')
 agent1 = PursueAgent(agent_id=1)
 reward_list = []

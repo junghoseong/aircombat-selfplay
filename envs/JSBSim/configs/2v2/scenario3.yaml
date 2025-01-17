@@ -15,7 +15,7 @@ acceleration_limit_z: 10.0
 # aircraft config
 aircraft_configs: {
   A0100: {
-    color: Red,
+    color: Blue,
     model: f16,
     init_state: {
       ic_long_gc_deg: 120.0,
@@ -27,7 +27,7 @@ aircraft_configs: {
     missile: 2
   },
   A0200: {
-    color: Red,
+    color: Blue,
     model: f16,
     init_state: {
       ic_long_gc_deg: 120.01,
@@ -39,7 +39,7 @@ aircraft_configs: {
     missile: 2
   },
   A0300: {
-    color: Red,
+    color: Blue,
     model: f16,
     init_state: {
       ic_long_gc_deg: 120.02,
@@ -51,7 +51,7 @@ aircraft_configs: {
     missile: 2
   },
   A0400: {
-    color: Red,
+    color: Blue,
     model: f16,
     init_state: {
       ic_long_gc_deg: 120.03,
@@ -63,7 +63,7 @@ aircraft_configs: {
     missile: 2
   },
   B0100: {
-    color: Blue,
+    color: Red,
     model: f16,
     init_state: {
       ic_h_sl_ft: 20000,
@@ -75,7 +75,7 @@ aircraft_configs: {
     missile: 2
   },
   B0200: {
-    color: Blue,
+    color: Red,
     model: f16,
     init_state: {
       ic_h_sl_ft: 20000,
@@ -87,7 +87,7 @@ aircraft_configs: {
     missile: 2
   },
   B0300: {
-    color: Blue,
+    color: Red,
     model: f16,
     init_state: {
       ic_h_sl_ft: 20000,
@@ -99,7 +99,7 @@ aircraft_configs: {
     missile: 2
   },
   B0400: {
-    color: Blue,
+    color: Red,
     model: f16,
     init_state: {
       ic_h_sl_ft: 20000,

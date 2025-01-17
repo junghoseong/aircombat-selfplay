@@ -350,4 +350,46 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
             target = enemy.get_position() - agent.get_position()
             distance = np.linalg.norm(target)
             target_distances.append(distance)
-        return agent.enemies[np.argmax(target_distances)]                
+        return agent.enemies[np.argmax(target_distances)] 
+    
+    
+    
+class Scenario1_curriculum(Scenario1):
+    def __init__(self, config: str):
+        Scenario1.__init__(self, config)
+        self.reward_functions = [
+            PostureReward(self.config),
+            AltitudeReward(self.config),
+            EventDrivenReward(self.config),
+            ShootPenaltyReward(self.config)
+        ]
+
+        self.curriculum_angle = 0
+        self.winning_rate = 0
+        self.record = []
+        
+    def reset(self, env):
+        if self.winning_rate >= 0.9 and len(self.record) > 20:
+            self.curriculum_angle += 1
+            self.record = []
+        env.reset_simulators_curriculum(self.curriculum_angle)
+        Scenario1.reset(self, env)
+    
+    def get_termination(self, env, agent_id, info={}):
+        done = False
+        success = True
+        for condition in self.termination_conditions:
+            d, s, info = condition.get_termination(self, env, agent_id, info)
+            done = done or d
+            success = success and s
+            if done:
+                if env.agents[agent_id].color == 'Blue':
+                    print(success, s)
+                    if success:
+                        self.record.append(1)
+                    else:
+                        self.record.append(0)
+                    self.winning_rate = sum(self.record)/len(self.record)   
+                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
+                break
+        return done, info

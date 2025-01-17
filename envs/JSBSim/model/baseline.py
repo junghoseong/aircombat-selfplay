@@ -17,7 +17,7 @@ class BaselineAgent(ABC):
     def __init__(self, agent_id) -> None:
         self.model_path = get_root_dir() + '/model/baseline_model.pt'
         self.actor = BaselineActor()
-        self.actor.load_state_dict(torch.load(self.model_path))
+        self.actor.load_state_dict(torch.load(self.model_path, map_location=torch.device('cuda')))
         self.actor.eval()
         self.agent_id = agent_id
         self.state_var = [
@@ -166,7 +166,7 @@ class DodgeMissileAgent:
     def __init__(self) -> None:
         self.model_path = get_root_dir() + '/model/dodge_missile_model.pt'
         self.actor = BaselineActor(input_dim=21, use_mlp_actlayer=True)
-        self.actor.load_state_dict(torch.load(self.model_path, map_location=torch.device('cpu')))
+        self.actor.load_state_dict(torch.load(self.model_path, map_location=torch.device('cuda')))
         self.state_var = [
             c.position_long_gc_deg,             # 0. lontitude  (unit: °)
             c.position_lat_geod_deg,            # 1. latitude   (unit: °)

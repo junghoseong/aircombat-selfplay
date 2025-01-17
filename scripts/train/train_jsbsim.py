@@ -175,5 +175,7 @@ def main(args):
 
 
 if __name__ == "__main__":
+    import multiprocessing
+    multiprocessing.set_start_method('spawn', force=True) # add for fixed cuda re-initialize error
     logging.basicConfig(level=logging.INFO, format="%(message)s")   # INFO 레벨 이상의 로그만 출력됨. (DEBUG, INFO, WARNING, ERROR, CRITICAL) / 단순히 메시지만 출력
     main(sys.argv[1:])

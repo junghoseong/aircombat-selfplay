@@ -23,9 +23,10 @@ class Timeout(BaseTerminationCondition):
         Returns:
             (tuple): (done, success, info)
         """
+        success = True
         done = env.current_step >= self.max_steps
         if done:
             self.log(f"{agent_id} step limits! Total Steps={env.current_step}")
             info['done_condition'] = Fore.LIGHTYELLOW_EX + f"{agent_id} step limits! Total Steps={env.current_step}"
-        success = False
+            success = False        
         return done, success, info

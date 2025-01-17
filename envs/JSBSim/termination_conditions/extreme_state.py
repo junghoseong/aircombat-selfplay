@@ -23,10 +23,11 @@ class ExtremeState(BaseTerminationCondition):
         Returns:
             (tuple): (done, success, info)
         """
+        success = True
         done = bool(env.agents[agent_id].get_property_value(c.detect_extreme_state))
         if done:
             env.agents[agent_id].crash()
             self.log(f'{agent_id} is on an extreme state! Total Steps={env.current_step}')
             info['done_condition'] = Fore.LIGHTRED_EX + f'{agent_id} is on an extreme state! Total Steps={env.current_step}'
-        success = False
+            success = False
         return done, success, info

@@ -1,70 +1,45 @@
-import numpy as np
-from envs.JSBSim.envs import SingleCombatEnv, SingleControlEnv, MultipleCombatEnv
-from envs.env_wrappers import SubprocVecEnv, ShareDummyVecEnv, ShareSubprocVecEnv, DummyVecEnv
-from envs.JSBSim.core.catalog import Catalog as c
-import logging
-import time
-logging.basicConfig(level=logging.DEBUG)
+import math
 
-def test_env():
-    parallel_num = 1
-    envs = DummyVecEnv([lambda: SingleCombatEnv("1v1/NoWeapon/HierarchySelfplay") for _ in range(parallel_num)])
+def calculate_coordinates_corrected(center_lat, center_lon, radius_km, angles_deg):
+    R = 6371  # 지구 평균 반지름 (km)
+    d = radius_km / R  # 구면 거리 (라디안 단위)
+    center_lat_rad = math.radians(center_lat)
+    center_lon_rad = math.radians(center_lon)
+    
+    coordinates = []
+    for angle_deg in angles_deg:
+        # 각도를 아래쪽이 0도로 설정하고 반시계 방향으로 증가
+        theta = math.radians(180 - angle_deg)  # 그대로 각도를 사용
+        
+        # 새로운 위도 계산
+        new_lat_rad = math.asin(
+            math.sin(center_lat_rad) * math.cos(d) +
+            math.cos(center_lat_rad) * math.sin(d) * math.cos(theta)
+        )
+        
+        # 새로운 경도 계산
+        new_lon_rad = center_lon_rad + math.atan2(
+            math.sin(theta) * math.sin(d) * math.cos(center_lat_rad),
+            math.cos(d) - math.sin(center_lat_rad) * math.sin(new_lat_rad)
+        )
+        
+        # 라디안 -> 도(degree) 변환
+        new_lat = math.degrees(new_lat_rad)
+        new_lon = math.degrees(new_lon_rad)
+        
+        coordinates.append((new_lat, new_lon))
+    
+    return coordinates
 
-    envs.reset()
-    # DataType test
-    obs_shape = (parallel_num, envs.num_agents, *envs.observation_space.shape)
-    # act_shape = (parallel_num, envs.num_agents, *envs.action_space.shape)
-    reward_shape = (parallel_num, envs.num_agents, 1)
-    done_shape = (parallel_num, envs.num_agents, 1)
+# 중심점과 반지름
+center_lat = 60.1  # 중심 위도
+center_lon = 120.0  # 중심 경도
+radius_km = 11.119  # 반지름 (위도 0.1도)
 
+# 각도 리스트 (0~360도)
+angles_deg = list(range(0, 361, 30))  # 10도 간격
 
-    def convert(sample):
-        return np.concatenate((sample[0], np.expand_dims(sample[1], axis=0)))
+# 좌표 계산 (아래쪽이 0도, 오른쪽이 90도, 위쪽이 180도, 왼쪽이 270도)
+result_corrected = calculate_coordinates_corrected(center_lat, center_lon, radius_km, angles_deg)
 
-    episode_reward = 0
-    step = 0
-    while True:
-        actions = np.array([[envs.action_space.sample() for _ in range(envs.num_agents)] for _ in range(parallel_num)])
-        obss, rewards, dones, infos = envs.step(actions)
-        bloods = [envs.envs[0].agents[agent_id].bloods for agent_id in envs.envs[0].agents.keys()]
-        print(f"step:{step}, bloods:{bloods}")
-        episode_reward += rewards[:,0,:]
-        envs.render(mode='txt', filepath='JSBSimRecording.txt.acmi')
-        # terminate if any of the parallel envs has been done
-        if np.all(dones):
-            print(episode_reward)
-            break
-        step += 1
-    envs.close()
-
-def test_multi_env():
-    parallel_num = 1
-    envs = ShareDummyVecEnv([lambda: MultipleCombatEnv('2v2/NoWeapon/HierarchySelfplay') for _ in range(parallel_num)])
-    assert envs.num_agents == 4
-    obs_shape = (parallel_num, envs.num_agents, *envs.observation_space.shape)
-    share_obs_shape = (parallel_num, envs.num_agents, *envs.share_observation_space.shape)
-    reward_shape = (parallel_num, envs.num_agents, 1)
-    done_shape = (parallel_num, envs.num_agents, 1)
-
-    # DataType test
-    obs, share_obs = envs.reset()
-    step = 0
-    envs.render(mode='txt', filepath='JSBSimRecording.txt.acmi')
-    assert obs.shape == obs_shape and share_obs.shape == share_obs_shape
-    while True:
-        actions = np.array([[envs.action_space.sample() for _ in range(envs.num_agents)] for _ in range(parallel_num)])
-        start = time.time()
-        obs, share_obs, rewards, dones, info = envs.step(actions)
-        bloods = [envs.envs[0].agents[agent_id].bloods for agent_id in envs.envs[0].agents.keys()]
-        print(f"step:{step}, bloods:{bloods}")
-        end = time.time()
-        # print(rewards)
-        envs.render(mode='txt', filepath='JSBSimRecording.txt.acmi')
-        assert obs.shape == obs_shape and rewards.shape == reward_shape and dones.shape == done_shape and share_obs_shape
-        if np.all(dones):
-            break
-        step += 1
-
-    envs.close()
-
-test_multi_env()
+print(result_corrected)
