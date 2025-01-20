@@ -1,7 +1,7 @@
 import numpy as np
 from .env_base import BaseEnv
 from ..tasks import SingleCombatTask, SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, \
-    HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, HierarchicalSingleCombatTask, Scenario1, Scenario1_curriculum
+    HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, HierarchicalSingleCombatTask, Scenario1, Scenario1_curriculum, WVRTask
 from ..tasks.KAI_project_task import Scenario1_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -34,7 +34,9 @@ class SingleCombatEnv(BaseEnv):
         elif taskname == "scenario1_for_KAI":
             self.task = Scenario1_for_KAI(self.config) 
         elif taskname == "scenario1_curriculum":
-            self.task = Scenario1_curriculum(self.config)      
+            self.task = Scenario1_curriculum(self.config)     
+        elif taskname == "wvr":
+            self.task = WVRTask(self.config)     
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 

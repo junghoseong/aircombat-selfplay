@@ -2,8 +2,9 @@ import numpy as np
 from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
-from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3
+from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3, Scenario2_curriculum
 from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
+from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
 class MultipleCombatEnv(BaseEnv):
     """
@@ -35,6 +36,8 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario2_for_KAI(self.config)
         elif taskname == 'scenario3_for_KAI':
             self.task = Scenario3_for_KAI(self.config)
+        elif taskname == 'scenario2_curriculum':
+            self.task = Scenario2_curriculum(self.config)
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 
@@ -56,7 +59,6 @@ class MultipleCombatEnv(BaseEnv):
         # Assign new initial condition here!
         if self.init_states is None:
             self.init_states = [sim.init_state.copy() for sim in self.agents.values()]
-            print("init state is {}".format(self.init_states))
             
         # # enemy
         # self.init_states[0].update({
@@ -158,3 +160,69 @@ class MultipleCombatEnv(BaseEnv):
             dones[agent_id] = [done]
 
         return self._pack(obs), self._pack(share_obs), self._pack(rewards), self._pack(dones), info
+    
+    
+    def reset_simulators_curriculum(self, angle):
+        # switch side
+        if self.init_states is None:
+            self.init_states = [sim.init_state.copy() for sim in self.agents.values()]
+        
+        # 중심점과 반지름
+        center_lat = 60.1  # 중심 위도
+        center_lon = 120.0  # 중심 경도
+        radius_km = 11.119  # 반지름 (위도 0.1도)
+
+        # 각도 리스트 (0~360도)
+        angles_deg = list(range(0, 181, 1))  # 1도 간격
+
+        # 좌표 계산 (아래쪽이 0도, 오른쪽이 90도, 위쪽이 180도, 왼쪽이 270도)
+        result_corrected = calculate_coordinates_heading_by_curriculum(center_lat, center_lon, radius_km, angles_deg)
+
+        self.init_states[0].update({
+            'ic_lat_geod_deg': result_corrected[angle][0],
+            'ic_long_gc_deg': result_corrected[angle][1],
+            'ic_h_sl_ft': 20000,
+            'ic_psi_true_deg': result_corrected[angle][2],
+            'ic_u_fps': 800.0,
+        })
+        
+        # 중심점과 반지름
+        center_lat = 60.1  # 중심 위도
+        center_lon = 120.01  # 중심 경도
+        radius_km = 11.119  # 반지름 (위도 0.1도)
+
+        # 각도 리스트 (0~360도)
+        angles_deg = list(range(0, 181, 1))  # 1도 간격
+
+        # 좌표 계산 (아래쪽이 0도, 오른쪽이 90도, 위쪽이 180도, 왼쪽이 270도)
+        result_corrected = calculate_coordinates_heading_by_curriculum(center_lat, center_lon, radius_km, angles_deg)
+
+
+        self.init_states[1].update({
+            'ic_lat_geod_deg': result_corrected[angle][0],
+            'ic_long_gc_deg': result_corrected[angle][1],
+            'ic_h_sl_ft': 20000,
+            'ic_psi_true_deg': result_corrected[angle][2],
+            'ic_u_fps': 800.0,
+        })
+        
+        self.init_states[2].update({
+            'ic_lat_geod_deg': 60.1,
+            'ic_long_gc_deg': 120.0,
+            'ic_h_sl_ft': 20000,
+            'ic_psi_true_deg': 0,
+            'ic_u_fps': 800.0,
+        })
+        
+        self.init_states[3].update({
+            'ic_lat_geod_deg': 60.1,
+            'ic_long_gc_deg': 120.01,
+            'ic_h_sl_ft': 20000,
+            'ic_psi_true_deg': 0,
+            'ic_u_fps': 800.0,
+        })
+                
+        init_states = self.init_states.copy()
+        for idx, sim in enumerate(self.agents.values()):
+            sim.reload(init_states[idx])
+        self._tempsims.clear()

@@ -1,13 +1,13 @@
 #!/bin/sh
 
 env="SingleCombat"
-scenario="1v1/ShootMissile/scenario1_curriculum"
+scenario="1v1/WVR_selfplay"
 algo="ppo"
-exp="curriculum_selfplay"
+exp="wvr_selflplay"
 seed=1
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"
-CUDA_VISIBLE_DEVICES=2 python train/train_jsbsim.py \
+CUDA_VISIBLE_DEVICES=3 python train/train_jsbsim.py \
     --env-name ${env} --algorithm-name ${algo} --scenario-name ${scenario} --experiment-name ${exp} \
     --seed ${seed} --n-training-threads 1 --n-rollout-threads 32 --cuda --log-interval 1 --save-interval 1 \
     --use-selfplay --selfplay-algorithm "fsp" --n-choose-opponents 1 \

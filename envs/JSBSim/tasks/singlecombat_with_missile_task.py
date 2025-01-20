@@ -260,8 +260,9 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         """Convert high-level action into low-level action.
         """
         if self.use_baseline and agent_id in env.enm_ids:
-            action = self.baseline_agent.normalize_action(env, agent_id, action)
             self._shoot_action[agent_id] = action[-4:]
+            action = self.baseline_agent.get_action(env, env.task)
+            action = self.baseline_agent.normalize_action(env, agent_id, action)
             return action
         self._shoot_action[agent_id] = action[-4:]
         return HierarchicalSingleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
@@ -351,8 +352,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
             distance = np.linalg.norm(target)
             target_distances.append(distance)
         return agent.enemies[np.argmax(target_distances)] 
-    
-    
+
     
 class Scenario1_curriculum(Scenario1):
     def __init__(self, config: str):
