@@ -488,7 +488,7 @@ class MissileSimulator(BaseSimulator):
     
     def missed(self):
         self.__status = MissileSimulator.MISS
-        #print("Missed!") # for debug
+        print("Missed!") # for debug
 
     def launch(self, parent: AircraftSimulator):
         # inherit kinetic parameters from parent aricraft

@@ -292,7 +292,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
             shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][3] and self.remaining_chaff_flare[agent_id] > 0
 
             if shoot_flag_gun and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage gun duration
-                avail, enemy = self.a2a_launch_available(agent)
+                avail, enemy = self.a2a_launch_available(agent, agent_id, env)
                 if avail[0]:
                     target = self.get_target(agent)
                     enemy.bloods -= 5
@@ -300,7 +300,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
                     self.remaining_gun[agent_id] -= 1
             
             if shoot_flag_AIM_120B and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage long-range missile duration
-                avail, _ = self.a2a_launch_available(agent)
+                avail, _ = self.a2a_launch_available(agent, agent_id, env)
                 if avail[1]:
                     new_missile_uid = agent_id + str(self.remaining_missiles_AIM_120B[agent_id])
                     target = self.get_target(agent)
@@ -309,7 +309,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
                     self.remaining_missiles_AIM_120B[agent_id] -= 1
 
             if shoot_flag_AIM_9M and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage middle-range missile duration
-                avail, _ = self.a2a_launch_available(agent)
+                avail, _ = self.a2a_launch_available(agent, agent_id, env)
                 if avail[2]:
                     new_missile_uid = agent_id + str(self.remaining_missiles_AIM_9M[agent_id])
                     target = self.get_target(agent)
@@ -324,7 +324,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
                         
-    def a2a_launch_available(self, agent):
+    def a2a_launch_available(self, agent, agent_id, env):
         ret = [False, False, False]
         munition_info = {
             # KM / DEG
@@ -348,6 +348,12 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         
         if distance / 1000 < munition_info["AIM-9M"]["dist"] and attack_angle < munition_info["AIM-9M"]["AO"]:
             ret[2] = True
+
+        if self.use_baseline == True and agent_id in env.enm_ids:
+            ret[1] = False
+            if distance / 1000 < munition_info["AIM-120B"]["dist"] and attack_angle < munition_info["AIM-120B"]["AO"]/2:
+                ret[1] = True 
+
         
         return ret, enemy
         
