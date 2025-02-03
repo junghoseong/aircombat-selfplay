@@ -12,7 +12,7 @@ import os
 #os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 
 class Args:
-    def __init__(self) -> None:
+    def __init__(self):
         self.gain = 0.01
         self.hidden_size = '128 128'
         self.act_hidden_size = '128 128'
@@ -32,9 +32,9 @@ render = True
 ego_policy_index = 1040
 enm_policy_index = 0
 episode_rewards = 0
-experiment_name = "vsloiter_withmissile"
+experiment_name = "vspursue_withmissile"
 
-env = SingleCombatEnv("1v1/ShootMissile/scenario1_vs_loiter")
+env = SingleCombatEnv("1v1/ShootMissile/scenario1_vs_pursue")
 
 env.seed(10)
 args = Args()
@@ -42,7 +42,7 @@ args = Args()
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.load_state_dict(torch.load("./checkpoint/actor_25.pt"))
 
-enm_policy = ManeuverAgent(agent_id=1, maneuver='triangle')
+enm_policy = PursueAgent(agent_id=1)
 
 for name, param in ego_policy.named_parameters():
     print(f"{name}: requires_grad={param.requires_grad}")

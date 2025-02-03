@@ -17,6 +17,7 @@ class SingleCombatDodgeMissileTask(SingleCombatTask):
         self.max_attack_angle = getattr(self.config, 'max_attack_angle', 180)
         self.max_attack_distance = getattr(self.config, 'max_attack_distance', np.inf)
         self.min_attack_interval = getattr(self.config, 'min_attack_interval', 125)
+
         self.reward_functions = [
             PostureReward(self.config),
             MissilePostureReward(self.config),
@@ -260,11 +261,16 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         """Convert high-level action into low-level action.
         """
         if self.use_baseline and agent_id in env.enm_ids:
-            self._shoot_action[agent_id] = action[-4:]
+            # self._shoot_action[agent_id] = action[-4:]
+            self._shoot_action[agent_id] = [0,0,0,0]
             action = self.baseline_agent.get_action(env, env.task)
             action = self.baseline_agent.normalize_action(env, agent_id, action)
+            if self.use_artillery:
+                self._shoot_action[agent_id] = [1,1,1,1]
+            
             return action
-        self._shoot_action[agent_id] = action[-4:]
+        if agent_id in env.ego_ids:
+            self._shoot_action[agent_id] = action[-4:]
         return HierarchicalSingleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
 
     def reset(self, env):
