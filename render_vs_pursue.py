@@ -40,7 +40,7 @@ env.seed(10)
 args = Args()
 
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
-ego_policy.load_state_dict(torch.load("./checkpoint/actor_25.pt"))
+ego_policy.load_state_dict(torch.load("./scripts/results/SingleCombat/1v1/ShootMissile/scenario1_vs_pursue/ppo/v1/wandb/run-20250203_191615-tv2vzrdm/files/actor_latest.pt"))
 
 enm_policy = PursueAgent(agent_id=1)
 
