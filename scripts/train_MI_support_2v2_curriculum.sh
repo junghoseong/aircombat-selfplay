@@ -3,7 +3,7 @@
 env="MultipleCombat"
 scenario="2v2/scenario2_curriculum"
 algo="mappo"
-exp="MI_experiment_curriculum"
+exp="MI_experiment_curriculum_move_vs_firearm"
 seed=0
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"

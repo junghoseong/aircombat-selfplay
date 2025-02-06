@@ -503,6 +503,14 @@ class SharedReplayBuffer(ReplayBuffer):
 
 class SharedHybridReplayBuffer(Buffer):
 
+    @staticmethod
+    def _flatten(T: int, N: int, x: np.ndarray):
+        return x.reshape(T * N, *x.shape[2:])
+
+    @staticmethod
+    def _cast(x: np.ndarray):
+        return x.transpose(1, 2, 0, *range(3, x.ndim)).reshape(-1, *x.shape[3:])
+
     def __init__(self, args, num_agents, obs_space, share_obs_space, discrete_act_space, parameter_act_space, all_parameter_act_space, discrete_emb_space, parameter_emb_space):
         # env config
         self.num_agents = num_agents
@@ -519,7 +527,7 @@ class SharedHybridReplayBuffer(Buffer):
 
         obs_shape = get_shape_from_space(obs_space)
         share_obs_shape = get_shape_from_space(share_obs_space)
-
+        #action config
         discrete_act_shape = get_shape_from_space(discrete_act_space)
         parameter_act_shape = get_shape_from_space(parameter_act_space)
         all_parameter_act_shape = get_shape_from_space(all_parameter_act_space)
@@ -584,7 +592,6 @@ class SharedHybridReplayBuffer(Buffer):
             rnn_states_critic:  hc_{t+1}
             active_masks:       1 - agent_done_{t}
         """
-        #####
         self.obs[self.step + 1] = obs.copy()
         self.discrete_actions[self.step] = discrete_actions.copy()
         self.parameter_actions[self.step] = parameter_actions.copy()
@@ -601,22 +608,31 @@ class SharedHybridReplayBuffer(Buffer):
             self.bad_masks[self.step + 1] = bad_masks.copy()
 
         self.step = (self.step + 1) % self.buffer_size
-        ####
         self.share_obs[self.step + 1] = share_obs.copy()
         if active_masks is not None:
             self.active_masks[self.step + 1] = active_masks.copy()
         if available_actions is not None:
             pass
-    ######should work from here
+
     def after_update(self):
         self.active_masks[0] = self.active_masks[-1].copy()
         self.share_obs[0] = self.share_obs[-1].copy()
-        return super().after_update()
+        self.obs[0] = self.obs[-1].copy()
+        self.masks[0] = self.masks[-1].copy()
+        self.bad_masks[0] = self.bad_masks[-1].copy()
+        self.rnn_states_actor[0] = self.rnn_states_actor[-1].copy()
+        self.rnn_states_critic[0] = self.rnn_states_critic[-1].copy()
     
     def clear(self):
         self.step = 0
         self.obs = np.zeros_like(self.obs, dtype=np.float32)
-        self.actions = np.zeros_like(self.actions, dtype=np.float32)
+
+        self.discrete_actions = np.zeros_like(self.discrete_actions, dtype=np.float32)
+        self.parameter_actions = np.zeros_like(self.parameter_actions, dtype=np.float32)
+        self.all_parameter_actions = np.zeros_like(self.all_parameter_actions, dtype=np.float32)
+        self.discrete_embeddings = np.zeros_like(self.discrete_embeddings, dtype=np.float32)
+        self.parameter_embeddings = np.zeros_like(self.parameter_embeddings, dtype=np.float32)
+
         self.rewards = np.zeros_like(self.rewards, dtype=np.float32)
         self.masks = np.ones_like(self.masks, dtype=np.float32)
         self.bad_masks = np.ones_like(self.bad_masks, dtype=np.float32)
@@ -649,7 +665,13 @@ class SharedHybridReplayBuffer(Buffer):
         # Transpose and reshape parallel data into sequential data
         obs = self._cast(self.obs[:-1])
         share_obs = self._cast(self.share_obs[:-1])
-        actions = self._cast(self.actions)
+
+        discrete_actions = self._cast(self.discrete_actions)
+        parameter_actions = self._cast(self.parameter_actions)
+        all_parameter_actions = self._cast(self.all_parameter_actions)
+        discrete_embeddings = self._cast(self.discrete_embeddings)
+        parameter_embeddings = self._cast(self.parameter_embeddings)
+
         masks = self._cast(self.masks[:-1])
         active_masks = self._cast(self.active_masks[:-1])
         old_action_log_probs = self._cast(self.action_log_probs)
@@ -668,7 +690,11 @@ class SharedHybridReplayBuffer(Buffer):
         for indices in sampler:
             obs_batch = []
             share_obs_batch = []
-            actions_batch = []
+            discrete_actions_batch = []
+            parameter_actions_batch = []
+            all_parameter_actions_batch = []
+            discrete_embeddings_batch = []
+            parameter_embeddings_batch = []
             masks_batch = []
             active_masks_batch = []
             old_action_log_probs_batch = []
@@ -684,7 +710,11 @@ class SharedHybridReplayBuffer(Buffer):
                 # size [T+1, N, M, Dim] => [T, N, M, Dim] => [N, M, T, Dim] => [N * M * T, Dim] => [L, Dim]
                 obs_batch.append(obs[ind:ind + data_chunk_length])
                 share_obs_batch.append(share_obs[ind:ind + data_chunk_length])
-                actions_batch.append(actions[ind:ind + data_chunk_length])
+                discrete_actions_batch.append(discrete_actions[ind:ind + data_chunk_length])
+                parameter_actions_batch.append(parameter_actions[ind:ind + data_chunk_length])
+                all_parameter_actions_batch.append(all_parameter_actions[ind:ind + data_chunk_length])
+                discrete_embeddings_batch.append(discrete_embeddings[ind:ind + data_chunk_length])
+                parameter_embeddings_batch.append(parameter_embeddings[ind:ind + data_chunk_length])
                 masks_batch.append(masks[ind:ind + data_chunk_length])
                 active_masks_batch.append(active_masks[ind:ind + data_chunk_length])
                 old_action_log_probs_batch.append(old_action_log_probs[ind:ind + data_chunk_length])
@@ -700,7 +730,11 @@ class SharedHybridReplayBuffer(Buffer):
             # These are all from_numpys of size (L, N, Dim)
             obs_batch = np.stack(obs_batch, axis=1)
             share_obs_batch = np.stack(share_obs_batch, axis=1)
-            actions_batch = np.stack(actions_batch, axis=1)
+            discrete_actions_batch = np.stack(discrete_actions_batch, axis=1)
+            parameter_actions_batch = np.stack(parameter_actions_batch, axis=1)
+            all_parameter_actions_batch = np.stack(all_parameter_actions_batch, axis=1)
+            discrete_embeddings_batch = np.stack(discrete_embeddings_batch, axis=1)
+            parameter_embeddings_batch = np.stack(parameter_embeddings_batch, axis=1)
             masks_batch = np.stack(masks_batch, axis=1)
             active_masks_batch = np.stack(active_masks_batch, axis=1)
             old_action_log_probs_batch = np.stack(old_action_log_probs_batch, axis=1)
@@ -715,7 +749,11 @@ class SharedHybridReplayBuffer(Buffer):
             # Flatten the (L, N, ...) from_numpys to (L * N, ...)
             obs_batch = self._flatten(L, N, obs_batch)
             share_obs_batch = self._flatten(L, N, share_obs_batch)
-            actions_batch = self._flatten(L, N, actions_batch)
+            discrete_actions_batch = self._flatten(L, N, discrete_actions_batch)
+            parameter_actions_batch = self._flatten(L, N, parameter_actions_batch)
+            all_parameter_actions_batch = self._flatten(L, N, all_parameter_actions_batch)
+            discrete_embeddings_batch = self._flatten(L, N, discrete_embeddings_batch)
+            parameter_embeddings_batch = self._flatten(L, N, parameter_embeddings_batch)
             masks_batch = self._flatten(L, N, masks_batch)
             active_masks_batch = self._flatten(L, N, active_masks_batch)
             old_action_log_probs_batch = self._flatten(L, N, old_action_log_probs_batch)
@@ -723,7 +761,9 @@ class SharedHybridReplayBuffer(Buffer):
             returns_batch = self._flatten(L, N, returns_batch)
             value_preds_batch = self._flatten(L, N, value_preds_batch)
 
-            yield obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, \
+            yield obs_batch, share_obs_batch,\
+                  discrete_actions_batch, parameter_embeddings_batch, all_parameter_actions_batch, discrete_embeddings_batch, parameter_embeddings_batch, \
+                  masks_batch, active_masks_batch, \
                 old_action_log_probs_batch, advantages_batch, returns_batch, value_preds_batch, \
                 rnn_states_actor_batch, rnn_states_critic_batch
 
@@ -740,7 +780,11 @@ class SharedHybridReplayBuffer(Buffer):
         """
         obs_batch = self.obs[:-1]
         share_obs_batch = self.share_obs[:-1]
-        actions_batch = self.actions
+        discrete_actions_batch = self.discrete_actions
+        parameter_actions_batch = self.parameter_actions
+        all_parameter_actions_batch = self.all_parameter_actions
+        discrete_embeddings_batch = self.discrete_embeddings
+        parameter_embeddings_batch = self.parameter_embeddings
         masks_batch = self.masks[:-1]
         active_masks_batch = self.active_masks[:-1]
         rnn_states_actor_batch = np.squeeze(self.rnn_states_actor[:-1], axis=3)
@@ -762,7 +806,11 @@ class SharedHybridReplayBuffer(Buffer):
             obs_batch_sample = obs_batch[indices, :, :, :]
             next_obs_batch_sample = next_obs_batch[indices, :, :, :]
             share_obs_batch_sample = share_obs_batch[indices, :, :, :]
-            actions_batch_sample = actions_batch[indices, :, :, :]
+            discrete_actions_batch_sample = discrete_actions_batch[indices, :, :, :]
+            parameter_actions_batch_sample = parameter_actions_batch[indices, :, :, :]
+            all_parameter_actions_batch_sample = all_parameter_actions_batch[indices, :, :, :]
+            discrete_embeddings_batch_sample = discrete_embeddings_batch[indices, :, :, :]
+            parameter_embeddings_batch_sample = parameter_embeddings_batch[indices, :, :, :]
             masks_batch_sample = masks_batch[indices, :, :, :]
             active_masks_batch_sample = active_masks_batch[indices, :, :, :]
             rnn_states_actor_batch_sample = rnn_states_actor_batch[indices, :, :, :]
@@ -772,7 +820,11 @@ class SharedHybridReplayBuffer(Buffer):
                 obs_batch_sample,
                 next_obs_batch_sample,
                 share_obs_batch_sample,
-                actions_batch_sample,
+                discrete_actions_batch_sample,
+                parameter_actions_batch_sample,
+                all_parameter_actions_batch_sample,
+                discrete_embeddings_batch_sample,
+                parameter_embeddings_batch_sample,
                 masks_batch_sample,
                 active_masks_batch_sample,
                 rnn_states_actor_batch_sample
