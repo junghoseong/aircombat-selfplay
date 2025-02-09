@@ -2,277 +2,254 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
+from torch import float32
 import numpy as np
+import itertools
 
 from .mlp import MLPBase
 from .utils import check
 
-class Discriminator(nn.Module):
-    def __init__(self, args, num_agents, obs_space, share_obs_space, act_space, device=torch.device("cpu")):
-        super(Discriminator, self).__init__()
+class VAE(nn.Module):
+    def __init__(self, state_dim, discrete_action_dim, continuous_action_dim, latent_dim, #max_action = 1.0,
+                 hidden_size=128):
+        super(VAE, self).__init__()
 
-        # train config
-        self.device = device
-        self.tpdv = dict(dtype=torch.float32, device=self.device)
+        # embedding table
+        # init_tensor = torch.rand(action_dim,
+        #                          action_embedding_dim) * 2 - 1  # Don't initialize near the extremes.
+        # self.embeddings = torch.nn.Parameter(init_tensor.type(float32), requires_grad=True)
+        self.embeddings = torch.tensor(list(itertools.product([0, 1], repeat=discrete_action_dim)), dtype=torch.int)
+        # print("self.embeddings", self.embeddings) 
+        self.e0_0 = nn.Linear(state_dim + discrete_action_dim, hidden_size)
+        self.e0_1 = nn.Linear(continuous_action_dim, hidden_size)
 
-        # PPO config
-        self.ppo_epoch = args.ppo_epoch
-        self.hidden_size = args.hidden_size
-        self.num_mini_batch = args.num_mini_batch
-        self.data_chunk_length = args.data_chunk_length
-        self.recurrent_hidden_size = args.recurrent_hidden_size
+        self.e1 = nn.Linear(hidden_size, hidden_size)
+        self.e2 = nn.Linear(hidden_size, hidden_size)
+        self.mean = nn.Linear(hidden_size, latent_dim)
+        self.log_std = nn.Linear(hidden_size, latent_dim)
 
-        # Network config
-        self.num_agents = num_agents
+        self.d0_0 = nn.Linear(state_dim + discrete_action_dim, hidden_size)
+        self.d0_1 = nn.Linear(latent_dim, hidden_size)
+        self.d1 = nn.Linear(hidden_size, hidden_size)
+        self.d2 = nn.Linear(hidden_size, hidden_size)
 
-        self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size - 7
-        self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size - 4
+        self.continuous_action_output = nn.Linear(hidden_size, continuous_action_dim)
 
-        self.output_dim = obs_space.shape[0]
+        self.d3 = nn.Linear(hidden_size, hidden_size)
 
-        self.pred = check(predict_net(self.input_dim, self.output_dim, args)).to(**self.tpdv)
-        self.pred_wo = check(predict_net(self.input_dim_wo_act, self.output_dim, args)).to(**self.tpdv)
+        self.delta_state_output = nn.Linear(hidden_size, state_dim)
 
-        self.q_optimizer = optim.Adam(list(self.pred.parameters()) + list(self.pred_wo.parameters()), lr=args.lr)
-        self.q_loss_coef = 0.01
+        #self.max_action = max_action
+        self.latent_dim = latent_dim
 
-    def train(self, buffer):
+    def forward(self, state, discrete_action, continuous_action):
+
+        z_0 = F.relu(self.e0_0(torch.cat([state, discrete_action], 1)))
+        z_1 = F.relu(self.e0_1(continuous_action))   # parameter, state, action.
+        z = z_0 * z_1 
+
+        z = F.relu(self.e1(z))
+        z = F.relu(self.e2(z))
+
+        mean = self.mean(z)
+        # Clamped for numerical stability
+        log_std = self.log_std(z).clamp(-4, 15)
+
+        std = torch.exp(log_std)
+        z = mean + std * torch.randn_like(std)
+        u, s = self.decode(state, z, discrete_action)
+
+        return u, s, mean, std
+
+    def decode(self, state, z=None, discrete_action=None, clip=None, raw=True):
+        # When sampling from the VAE, the latent vector is clipped to [-0.5, 0.5]
+        if z is None:
+            z = torch.randn((state.shape[0], self.latent_dim)).to(device)
+            if clip is not None:
+                z = z.clamp(-clip, clip)
+        v_0 = F.relu(self.d0_0(torch.cat([state, discrete_action], 1)))
+        v_1 = F.relu(self.d0_1(z))
+        v = v_0 * v_1
+        v = F.relu(self.d1(v))
+        v = F.relu(self.d2(v))
+
+        continuous_action_decoded = self.continuous_action_output(v)
+
+        v = F.relu(self.d3(v))
+        state_shift= self.delta_state_output(v)
+
+        if raw: return continuous_action_decoded, state_shift
+        #return self.max_action * torch.tanh(continuous_action_decoded), torch.tanh(state_shift)
+
+class Action_representation(NeuralNet):
+    def __init__(self,
+                 state_dim,
+                 discrete_action_dim,
+                 continuous_action_dim,
+                 #reduced_action_dim=2,
+                 #reduce_parameter_action_dim=2,
+                 latent_action_dim = 2,
+                 embed_lr=1e-4,
+                 ):
+        super(Action_representation, self).__init__()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.parameter_action_dim = continuous_action_dim
+        #self.reduced_action_dim = reduced_action_dim
+        self.state_dim = state_dim
+        self.discrete_action_dim = discrete_action_dim
+        # Action embeddings to project the predicted action into original dimensions
+        # latent_dim=action_dim*2+parameter_action_dim*2
+        self.latent_dim = latent_action_dim
+        self.embed_lr = embed_lr
+        self.vae = VAE(state_dim=self.state_dim, discrete_action_dim=self.action_dim,
+                       continuous_action_dim=self.parameter_action_dim,
+                       latent_dim=self.latent_dim, #max_action=1.0,
+                       hidden_size=128).to(self.device)
+        self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=1e-4)
+
+    # def discrete_embedding(self,):
+    #     emb = self.vae.embeddings
+
+    #     return emb
+
+    def unsupervised_loss(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr): 
+
+        a_d = a_d.to(self.device)
+
+        s1 = s1.to(self.device)
+        s2 = s2.to(self.device)
+        a_c = a_c.to(self.device)
+
+        vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, sup_batch_size, embed_lr)
+        return vae_loss, recon_loss_d, recon_loss_c, KL_loss
+
+    def train_step(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr=1e-4):
+        state = s1
+        action_d = a_d
+        action_c = a_c
+        next_state = s2
+        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state,
+                                                                  sup_batch_size)
+
+        #self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=embed_lr)
+        self.vae_optimizer.zero_grad()
+        vae_loss.backward()
+        self.vae_optimizer.step()
+
+        return vae_loss.cpu().data.numpy(), recon_loss_s.cpu().data.numpy(), recon_loss_c.cpu().data.numpy(), KL_loss.cpu().data.numpy()
+
+    def loss(self, state, action_d, action_c, next_state, sup_batch_size):
+        
+        recon_c, recon_s, mean, std = self.vae(state, action_d, action_c)
+
+        recon_loss_s = F.mse_loss(recon_s, next_state, size_average=True) #dynamics predictive
+        recon_loss_c = F.mse_loss(recon_c, action_c, size_average=True)
+
+        KL_loss = -0.5 * (1 + torch.log(std.pow(2)) - mean.pow(2) - std.pow(2)).mean()
+
+        # vae_loss = 0.25 * recon_loss_s + recon_loss_c + 0.5 * KL_loss
+        # vae_loss = 0.25 * recon_loss_s + 2.0 * recon_loss_c + 0.5 * KL_loss  #best
+        beta = 2.0
+        vae_loss = beta * recon_loss_s + 2.0 * recon_loss_c + 0.5 * KL_loss  ##beta should be adjusted here,
+        # print("vae loss",vae_loss)
+        # return vae_loss, 0.25 * recon_loss_s, recon_loss_c, 0.5 * KL_loss
+        # return vae_loss, 0.25 * recon_loss_s, 2.0 * recon_loss_c, 0.5 * KL_loss #best
+        return vae_loss, recon_loss_s, 2.0 * recon_loss_c, 0.5 * KL_loss
+
+    
+    def select_continuous_action(self, state, z, discrete_action):
         """
-        Main training loop where we iterate over the data generator
-        to get mini-batches of length L (chunk length) for RNN training.
+            select continuous action from state, latent vector & discrete actions
         """
-        train_info = {}
-        train_info['disc_loss'] = 0
-
-        # Repeat training for a certain number of PPO epochs
-        for _ in range(self.ppo_epoch):
-            # Retrieve the RNN-based mini-batch data generator
-            data_generator = buffer.random_batch_generator(self.num_mini_batch, self.data_chunk_length)
-
-            # For each chunk of the sequence data
-            for sample in data_generator:
-
-                obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
-
-                # Update qϕ (influence estimator) and pη (prediction network)
-                disc_loss = self.update_parameters(obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch)
-                train_info['disc_loss'] += disc_loss.item()
-
-        # Calculate the average disc_loss over all updates
-        num_updates = self.ppo_epoch * self.num_mini_batch
-        for k in train_info.keys():
-            train_info[k] /= num_updates
-
-        return train_info
-
-
-    def update_parameters(self, obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch):
-
-        # get shape
-        max_batch_size, rollout_threads, agent_num, _ = obs_batch.shape
-
-        # shape : (max_batch_size, rollout_threads, agent_num, ...)
-        obs_batch = check(obs_batch).to(**self.tpdv)  
-        next_obs_batch = check(next_obs_batch).to(**self.tpdv)
-        share_obs_batch = check(share_obs_batch).to(**self.tpdv)
-        actions_batch = check(actions_batch).to(**self.tpdv)
-        masks_batch = check(masks_batch).to(**self.tpdv)
-        active_masks_batch = check(active_masks_batch).to(**self.tpdv)
-        rnn_states_actor_batch = check(rnn_states_actor_batch).to(**self.tpdv)
-
-        loss_influence = 0.0
-        loss_prediction = 0.0
-
-        for thread in range(rollout_threads):
-            ### agent 1 ###
-            q_input = torch.cat([
-                rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,0,:3],
-                actions_batch[:,thread,1,3:]
-            ], dim=-1)
-
-            q_pred = self.pred(q_input) 
-            loss_influence += F.mse_loss(q_pred, next_obs_batch[:,thread,0,:])
-
-            q_input_wo= torch.cat([
-                rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,0,:3]
-            ], dim=-1)
-
-            q_pred_wo = self.pred_wo(q_input_wo) 
-            loss_influence += F.mse_loss(q_pred_wo, next_obs_batch[:,thread,0,:])
-
-            ### agent 2 ###
-            q_input = torch.cat([
-                rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,1,:3],
-                actions_batch[:,thread,0,3:]
-            ], dim=-1)
-
-            q_pred = self.pred(q_input)  
-            loss_influence += F.mse_loss(q_pred, next_obs_batch[:,thread,1,:])
-
-            q_input_wo= torch.cat([
-                rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,1,:3]
-            ], dim=-1)
-
-            q_pred_wo = self.pred_wo(q_input_wo)
-            loss_influence += F.mse_loss(q_pred_wo, next_obs_batch[:,thread,1,:])
-
-        # Optionally, you can average by (L-1)*N
-        loss_influence = loss_influence / (rollout_threads)
-
-        # Compute loss
-        total_loss = self.q_loss_coef * loss_influence 
-
-        self.q_optimizer.zero_grad()
-        total_loss.backward()
-        self.q_optimizer.step()
-
-        return total_loss
-
-
-    def compute_intrinsic_reward(self, obs, next_obs, actions, rewards, dones, rnn_states_actor):
-
-        # get shape
-        rollout_threads, agent_num, _ = obs.shape
-
-        # initialize intrinsic reward
-        reward_int = torch.zeros_like(torch.tensor(rewards, dtype=torch.float32))  # (threads, agents, 1)
-
-        # shape : (max_batch_size, rollout_threads, agent_num, ...)
-        obs = check(obs).to(**self.tpdv)  
-        next_obs = check(next_obs).to(**self.tpdv)
-        actions = check(actions).to(**self.tpdv)
-        dones = check(dones).to(**self.tpdv)
-        rnn_states_actors = check(rnn_states_actor).squeeze(dim=2).to(**self.tpdv)
-
-        ### agent 1 ###
-
-        q_input = torch.cat([
-            rnn_states_actors[:,0,:],      
-            actions[:,0,:3],
-            actions[:,1,3:]
-        ], dim=-1)
-
-        log_prob = self.pred.get_log_pi(q_input, next_obs[:,0,:])
-
-        q_input_wo= torch.cat([
-            rnn_states_actors[:,0,:],      
-            actions[:,0,:3]
-        ], dim=-1)
-
-        log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[:,0,:])
-
-        reward_int[:,1,:] = log_prob - log_prob_wo
-
-        ### agent 2 ###
-        q_input = torch.cat([
-            rnn_states_actors[:,0,:],      
-            actions[:,1,:3],
-            actions[:,0,3:]
-        ], dim=-1)
-
-        log_prob = self.pred.get_log_pi(q_input, next_obs[:,1,:])
-
-
-        q_input_wo= torch.cat([
-            rnn_states_actors[:,0,:],      
-            actions[:,1,:3]
-        ], dim=-1)
-
-        log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[:,1,:])
-
-        reward_int[:,0,:] = log_prob - log_prob_wo
-
-        return reward_int.detach().cpu().numpy()
-
-
-    def compute_MI(self, obs, next_obs, actions, dones, rnn_states_actor):
-
-        # get shape
-        agent_num, _ = obs.shape
-
-        # initialize intrinsic reward
-        MI_array = torch.zeros((agent_num, 1), dtype=torch.float32)  # (agents, 1)
-
-        # shape : (agent_num, ...)
-        obs = check(obs).to(**self.tpdv)  
-        next_obs = check(next_obs).to(**self.tpdv)
-        actions = check(actions).to(**self.tpdv)
-        dones = check(dones).to(**self.tpdv)
-        rnn_states_actors = check(rnn_states_actor).squeeze().to(**self.tpdv)
-
-        ### agent 1 ###
-
-        q_input = torch.cat([
-            rnn_states_actors,      
-            actions[0,:3],
-            actions[1,3:]
-        ], dim=-1)
-
-        log_prob = self.pred.get_log_pi(q_input, next_obs[0,:])
-
-        q_input_wo= torch.cat([
-            rnn_states_actors,      
-            actions[0,:3]
-        ], dim=-1)
-
-        log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[0,:])
-
-        MI_array[1,:] = log_prob - log_prob_wo
-
-        ### agent 2 ###
-        q_input = torch.cat([
-            rnn_states_actors,      
-            actions[1,:3],
-            actions[0,3:]
-        ], dim=-1)
-
-        log_prob = self.pred.get_log_pi(q_input, next_obs[1,:])
-
-
-        q_input_wo= torch.cat([
-            rnn_states_actors,      
-            actions[1,:3]
-        ], dim=-1)
-
-        log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[1,:])
-
-        MI_array[0,:] = log_prob - log_prob_wo
-
-        return MI_array.squeeze().detach().cpu().numpy()
-
-
-class predict_net(nn.Module):
-
-    def __init__(self, input_dim, output_dim, args):
-        super(predict_net, self).__init__()
-
-        self.output_dim = output_dim
-
-        self.layers = nn.ModuleList()
-        self.hidden_size = list(map(int, args.hidden_size.split()))
-        self.layers.append(nn.Linear(input_dim, self.hidden_size[0]*2))
-
-        for i in range(1, len(self.hidden_size)):
-            self.layers.append(nn.Linear(self.hidden_size[i - 1]*2, self.hidden_size[i]*2))
-
-        self.last_fc = nn.Linear(self.hidden_size[-1]*2, self.output_dim)
-
-    def forward(self, x):
-
-        for layer in self.layers:
-            x = F.relu(layer(x))
-
-        x = self.last_fc(x)
-        return x
-
-    def get_log_pi(self, own_variable, other_variable):
-        predict_variable = self.forward(own_variable)
-        log_prob = -1 * F.mse_loss(predict_variable, other_variable)
-        log_prob = torch.sum(log_prob, -1, keepdim=False)
-
-        return log_prob
+        with torch.no_grad():
+            state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+            z = torch.FloatTensor(z.reshape(1, -1)).to(self.device)
+            discrete_action = torch.FloatTensor(discrete_action.reshape(1, -1)).to(self.device)
+            action_c, state = self.vae.decode(state, z, discrete_action)
+        return action_c.cpu().data.numpy().flatten()   
+
+    # def select_delta_state(self, state, z, action):
+    #     with torch.no_grad():
+    #         state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+    #         z = torch.FloatTensor(z.reshape(1, -1)).to(self.device)
+    #         action = torch.FloatTensor(action.reshape(1, -1)).to(self.device)
+    #         action_c, state = self.vae.decode(state, z, action)
+    #     return state.cpu().data.numpy().flatten()
+    def select_delta_state(self, state, z, action):
+        with torch.no_grad():
+            _, state = self.vae.decode(state, z, action)
+        return state.cpu().data.numpy()
+
+    # def get_embedding(self, action):
+    #     # Get the corresponding target embedding
+    #     action_emb = self.vae.embeddings[action]
+    #     action_emb = torch.tanh(action_emb)
+    #     return action_emb
+    def pairwise_distances(x, y):
+        '''
+            Input: x is a Nxd matrix
+                y is a Mxd matirx
+            Output: dist is a NxM matrix where dist[i,j] is the square norm between x[i,:] and y[j,:]
+            i.e. dist[i,j] = ||x[i,:]-y[j,:]||^2
+
+            Advantage: Less memory requirement O(M*d + N*d + M*N) instead of O(N*M*d)
+            Computationally more expensive? Maybe, Not sure.
+            adapted from: https://discuss.pytorch.org/t/efficient-distance-matrix-computation/9065/2
+        '''
+
+
+        x_norm = (x ** 2).sum(1).view(-1, 1)   
+        y_norm = (y ** 2).sum(1).view(1, -1)
+
+        y_t = torch.transpose(y, 0, 1)  
+        # a^2 + b^2 - 2ab
+        dist = x_norm + y_norm - 2.0 * torch.mm(x, y_t)    
+        
+        return dist
+
+    def get_match_scores(self, action):
+        # compute similarity probability based on L2 norm
+        embeddings = self.vae.embeddings
+        embeddings = torch.tanh(embeddings)
+        action = action.to(self.device)
+        # compute similarity probability based on L2 norm
+        similarity = - self.pairwise_distances(action, embeddings)  # Negate euclidean to convert diff into similarity score
+        return similarity
+
+        # 获得最优动作，输出于embedding最相近的action 作为最优动作.
+
+    def select_discrete_action(self, action):  #discrete action matching
+        similarity = self.get_match_scores(action)
+        val, pos = torch.max(similarity, dim=1)
+        # print("pos",pos,len(pos))
+        # if len(pos) == 1:
+        #     return pos.cpu().item()  # data.numpy()[0]
+        # else:
+        #     # print("pos.cpu().item()", pos.cpu().numpy())
+        #     return pos.cpu().numpy()
+        return self.vae.embeddings[pos[0]].numpy()
+
+    def save(self, filename, directory):
+        torch.save(self.vae.state_dict(), '%s/%s_vae.pth' % (directory, filename))
+        # torch.save(self.vae.embeddings, '%s/%s_embeddings.pth' % (directory, filename))
+
+    def load(self, filename, directory):
+        self.vae.load_state_dict(torch.load('%s/%s_vae.pth' % (directory, filename), map_location=self.device))
+        # self.vae.embeddings = torch.load('%s/%s_embeddings.pth' % (directory, filename), map_location=self.device)
+
+    def get_c_rate(self, s1, a_d, a_c, s2, batch_size=100, range_rate=5):  #boundary??
+        a_d = self.get_embedding(a_d).to(self.device)
+        s1 = s1.to(self.device)
+        s2 = s2.to(self.device)
+        a_c = a_c.to(self.device)
+        _, recon_s, mean, std = self.vae(s1, a_d, a_c) #
+        # print("recon_s",recon_s.shape)
+        z = mean + std * torch.randn_like(std)    #mean + standard deviated latent vector
+        z = z.cpu().data.numpy()
+        c_rate = self.z_range(z, batch_size, range_rate)
+        # print("s2",s2.shape)
+
+        recon_s_loss = F.mse_loss(recon_s, s2, size_average=True)
+
+        # recon_s = abs(np.mean(recon_s.cpu().data.numpy()))
+        return c_rate, recon_s_loss.detach().cpu().numpy()

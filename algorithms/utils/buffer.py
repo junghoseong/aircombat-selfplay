@@ -511,7 +511,7 @@ class SharedHybridReplayBuffer(Buffer):
     def _cast(x: np.ndarray):
         return x.transpose(1, 2, 0, *range(3, x.ndim)).reshape(-1, *x.shape[3:])
 
-    def __init__(self, args, num_agents, obs_space, share_obs_space, discrete_act_space, parameter_act_space, all_parameter_act_space, discrete_emb_space, parameter_emb_space):
+    def __init__(self, args, num_agents, obs_space, share_obs_space, discrete_act_space, continuous_act_space, all_continuous_act_space, discrete_emb_space, continuous_emb_space):
         # env config
         self.num_agents = num_agents
         self.n_rollout_threads = args.n_rollout_threads
@@ -529,20 +529,20 @@ class SharedHybridReplayBuffer(Buffer):
         share_obs_shape = get_shape_from_space(share_obs_space)
         #action config
         discrete_act_shape = get_shape_from_space(discrete_act_space)
-        parameter_act_shape = get_shape_from_space(parameter_act_space)
-        all_parameter_act_shape = get_shape_from_space(all_parameter_act_space)
+        continuous_act_shape = get_shape_from_space(continuous_act_space)
+        all_continuous_act_shape = get_shape_from_space(all_continuous_act_space)
         discrete_emb_shape = get_shape_from_space(discrete_emb_space)
-        parameter_emb_shape = get_shape_from_space(parameter_emb_space)
+        continuous_emb_shape = get_shape_from_space(continuous_emb_space)
 
         # (o_0, s_0, a_0, r_0, d_0, ..., o_T, s_T)
         self.obs = np.zeros((self.buffer_size + 1, self.n_rollout_threads, self.num_agents, *obs_shape), dtype=np.float32)
         self.share_obs = np.zeros((self.buffer_size + 1, self.n_rollout_threads, self.num_agents, *share_obs_shape), dtype=np.float32)
         
         self.discrete_actions = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *discrete_act_shape), dtype=np.float32)
-        self.parameter_actions = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *parameter_act_shape), dtype=np.float32)
-        self.all_parameter_actions = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *all_parameter_act_shape), dtype=np.float32)
+        self.continuous_actions = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *continuous_act_shape), dtype=np.float32)
+        self.all_continuous_actions = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *all_continuous_act_shape), dtype=np.float32)
         self.discrete_embeddings = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *discrete_emb_shape), dtype=np.float32)
-        self.parameter_embeddings = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *parameter_emb_shape), dtype=np.float32)
+        self.continuous_embeddings = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *continuous_emb_shape), dtype=np.float32)
 
         self.rewards = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, 1), dtype=np.float32)
         # NOTE: masks[t] = 1 - dones[t-1], which represents whether obs[t] is a terminal state .... same for all agents
@@ -561,15 +561,18 @@ class SharedHybridReplayBuffer(Buffer):
         self.rnn_states_critic = np.zeros_like(self.rnn_states_actor)
 
         self.step = 0
+    def advantages(self) -> np.ndarray:
+        advantages = self.returns[:-1] - self.value_preds[:-1]  # type: np.ndarray
+        return (advantages - advantages.mean()) / (advantages.std() + 1e-5)
 
     def insert(self,
                obs: np.ndarray,
                share_obs: np.ndarray,
                discrete_actions: np.ndarray,
-               parameter_actions: np.ndarray,
-               all_parameter_actions: np.ndarray,
+               continuous_actions: np.ndarray,
+               all_continuous_actions: np.ndarray,
                discrete_embeddings: np.ndarray,
-               parameter_embeddings: np.ndarray,
+               continuous_embeddings: np.ndarray,
                rewards: np.ndarray,
                masks: np.ndarray,
                action_log_probs: np.ndarray,
@@ -594,10 +597,10 @@ class SharedHybridReplayBuffer(Buffer):
         """
         self.obs[self.step + 1] = obs.copy()
         self.discrete_actions[self.step] = discrete_actions.copy()
-        self.parameter_actions[self.step] = parameter_actions.copy()
-        self.all_parameter_actions[self.step] = all_parameter_actions.copy()
+        self.continuous_actions[self.step] = continuous_actions.copy()
+        self.all_continuous_actions[self.step] = all_continuous_actions.copy()
         self.discrete_embeddings[self.step] = discrete_embeddings.copy()
-        self.parameter_embeddings[self.step] = parameter_embeddings.copy()
+        self.continuous_embeddings[self.step] = continuous_embeddings.copy()
         self.rewards[self.step] = rewards.copy()
         self.masks[self.step + 1] = masks.copy()
         self.action_log_probs[self.step] = action_log_probs.copy()
@@ -628,10 +631,10 @@ class SharedHybridReplayBuffer(Buffer):
         self.obs = np.zeros_like(self.obs, dtype=np.float32)
 
         self.discrete_actions = np.zeros_like(self.discrete_actions, dtype=np.float32)
-        self.parameter_actions = np.zeros_like(self.parameter_actions, dtype=np.float32)
-        self.all_parameter_actions = np.zeros_like(self.all_parameter_actions, dtype=np.float32)
+        self.continuous_actions = np.zeros_like(self.continuous_actions, dtype=np.float32)
+        self.all_continuous_actions = np.zeros_like(self.all_continuous_actions, dtype=np.float32)
         self.discrete_embeddings = np.zeros_like(self.discrete_embeddings, dtype=np.float32)
-        self.parameter_embeddings = np.zeros_like(self.parameter_embeddings, dtype=np.float32)
+        self.continuous_embeddings = np.zeros_like(self.continuous_embeddings, dtype=np.float32)
 
         self.rewards = np.zeros_like(self.rewards, dtype=np.float32)
         self.masks = np.ones_like(self.masks, dtype=np.float32)
@@ -667,10 +670,10 @@ class SharedHybridReplayBuffer(Buffer):
         share_obs = self._cast(self.share_obs[:-1])
 
         discrete_actions = self._cast(self.discrete_actions)
-        parameter_actions = self._cast(self.parameter_actions)
-        all_parameter_actions = self._cast(self.all_parameter_actions)
+        continuous_actions = self._cast(self.continuous_actions)
+        all_continuous_actions = self._cast(self.all_continuous_actions)
         discrete_embeddings = self._cast(self.discrete_embeddings)
-        parameter_embeddings = self._cast(self.parameter_embeddings)
+        continuous_embeddings = self._cast(self.continuous_embeddings)
 
         masks = self._cast(self.masks[:-1])
         active_masks = self._cast(self.active_masks[:-1])
@@ -691,10 +694,10 @@ class SharedHybridReplayBuffer(Buffer):
             obs_batch = []
             share_obs_batch = []
             discrete_actions_batch = []
-            parameter_actions_batch = []
-            all_parameter_actions_batch = []
+            continuous_actions_batch = []
+            all_continuous_actions_batch = []
             discrete_embeddings_batch = []
-            parameter_embeddings_batch = []
+            continuous_embeddings_batch = []
             masks_batch = []
             active_masks_batch = []
             old_action_log_probs_batch = []
@@ -711,10 +714,10 @@ class SharedHybridReplayBuffer(Buffer):
                 obs_batch.append(obs[ind:ind + data_chunk_length])
                 share_obs_batch.append(share_obs[ind:ind + data_chunk_length])
                 discrete_actions_batch.append(discrete_actions[ind:ind + data_chunk_length])
-                parameter_actions_batch.append(parameter_actions[ind:ind + data_chunk_length])
-                all_parameter_actions_batch.append(all_parameter_actions[ind:ind + data_chunk_length])
+                continuous_actions_batch.append(continuous_actions[ind:ind + data_chunk_length])
+                all_continuous_actions_batch.append(all_continuous_actions[ind:ind + data_chunk_length])
                 discrete_embeddings_batch.append(discrete_embeddings[ind:ind + data_chunk_length])
-                parameter_embeddings_batch.append(parameter_embeddings[ind:ind + data_chunk_length])
+                continuous_embeddings_batch.append(continuous_embeddings[ind:ind + data_chunk_length])
                 masks_batch.append(masks[ind:ind + data_chunk_length])
                 active_masks_batch.append(active_masks[ind:ind + data_chunk_length])
                 old_action_log_probs_batch.append(old_action_log_probs[ind:ind + data_chunk_length])
@@ -731,10 +734,10 @@ class SharedHybridReplayBuffer(Buffer):
             obs_batch = np.stack(obs_batch, axis=1)
             share_obs_batch = np.stack(share_obs_batch, axis=1)
             discrete_actions_batch = np.stack(discrete_actions_batch, axis=1)
-            parameter_actions_batch = np.stack(parameter_actions_batch, axis=1)
-            all_parameter_actions_batch = np.stack(all_parameter_actions_batch, axis=1)
+            continuous_actions_batch = np.stack(continuous_actions_batch, axis=1)
+            all_continuous_actions_batch = np.stack(all_continuous_actions_batch, axis=1)
             discrete_embeddings_batch = np.stack(discrete_embeddings_batch, axis=1)
-            parameter_embeddings_batch = np.stack(parameter_embeddings_batch, axis=1)
+            continuous_embeddings_batch = np.stack(continuous_embeddings_batch, axis=1)
             masks_batch = np.stack(masks_batch, axis=1)
             active_masks_batch = np.stack(active_masks_batch, axis=1)
             old_action_log_probs_batch = np.stack(old_action_log_probs_batch, axis=1)
@@ -750,10 +753,10 @@ class SharedHybridReplayBuffer(Buffer):
             obs_batch = self._flatten(L, N, obs_batch)
             share_obs_batch = self._flatten(L, N, share_obs_batch)
             discrete_actions_batch = self._flatten(L, N, discrete_actions_batch)
-            parameter_actions_batch = self._flatten(L, N, parameter_actions_batch)
-            all_parameter_actions_batch = self._flatten(L, N, all_parameter_actions_batch)
+            continuous_actions_batch = self._flatten(L, N, continuous_actions_batch)
+            all_continuous_actions_batch = self._flatten(L, N, all_continuous_actions_batch)
             discrete_embeddings_batch = self._flatten(L, N, discrete_embeddings_batch)
-            parameter_embeddings_batch = self._flatten(L, N, parameter_embeddings_batch)
+            continuous_embeddings_batch = self._flatten(L, N, continuous_embeddings_batch)
             masks_batch = self._flatten(L, N, masks_batch)
             active_masks_batch = self._flatten(L, N, active_masks_batch)
             old_action_log_probs_batch = self._flatten(L, N, old_action_log_probs_batch)
@@ -762,7 +765,7 @@ class SharedHybridReplayBuffer(Buffer):
             value_preds_batch = self._flatten(L, N, value_preds_batch)
 
             yield obs_batch, share_obs_batch,\
-                  discrete_actions_batch, parameter_embeddings_batch, all_parameter_actions_batch, discrete_embeddings_batch, parameter_embeddings_batch, \
+                  discrete_actions_batch, continuous_actions_batch, all_continuous_actions_batch, discrete_embeddings_batch, continuous_embeddings_batch, \
                   masks_batch, active_masks_batch, \
                 old_action_log_probs_batch, advantages_batch, returns_batch, value_preds_batch, \
                 rnn_states_actor_batch, rnn_states_critic_batch
@@ -781,10 +784,10 @@ class SharedHybridReplayBuffer(Buffer):
         obs_batch = self.obs[:-1]
         share_obs_batch = self.share_obs[:-1]
         discrete_actions_batch = self.discrete_actions
-        parameter_actions_batch = self.parameter_actions
-        all_parameter_actions_batch = self.all_parameter_actions
+        continuous_actions_batch = self.continuous_actions
+        all_continuous_actions_batch = self.all_continuous_actions
         discrete_embeddings_batch = self.discrete_embeddings
-        parameter_embeddings_batch = self.parameter_embeddings
+        continuous_embeddings_batch = self.continuous_embeddings
         masks_batch = self.masks[:-1]
         active_masks_batch = self.active_masks[:-1]
         rnn_states_actor_batch = np.squeeze(self.rnn_states_actor[:-1], axis=3)
@@ -807,10 +810,10 @@ class SharedHybridReplayBuffer(Buffer):
             next_obs_batch_sample = next_obs_batch[indices, :, :, :]
             share_obs_batch_sample = share_obs_batch[indices, :, :, :]
             discrete_actions_batch_sample = discrete_actions_batch[indices, :, :, :]
-            parameter_actions_batch_sample = parameter_actions_batch[indices, :, :, :]
-            all_parameter_actions_batch_sample = all_parameter_actions_batch[indices, :, :, :]
+            continuous_actions_batch_sample = continuous_actions_batch[indices, :, :, :]
+            all_continuous_actions_batch_sample = all_continuous_actions_batch[indices, :, :, :]
             discrete_embeddings_batch_sample = discrete_embeddings_batch[indices, :, :, :]
-            parameter_embeddings_batch_sample = parameter_embeddings_batch[indices, :, :, :]
+            continuous_embeddings_batch_sample = continuous_embeddings_batch[indices, :, :, :]
             masks_batch_sample = masks_batch[indices, :, :, :]
             active_masks_batch_sample = active_masks_batch[indices, :, :, :]
             rnn_states_actor_batch_sample = rnn_states_actor_batch[indices, :, :, :]
@@ -821,10 +824,10 @@ class SharedHybridReplayBuffer(Buffer):
                 next_obs_batch_sample,
                 share_obs_batch_sample,
                 discrete_actions_batch_sample,
-                parameter_actions_batch_sample,
-                all_parameter_actions_batch_sample,
+                continuous_actions_batch_sample,
+                all_continuous_actions_batch_sample,
                 discrete_embeddings_batch_sample,
-                parameter_embeddings_batch_sample,
+                continuous_embeddings_batch_sample,
                 masks_batch_sample,
                 active_masks_batch_sample,
                 rnn_states_actor_batch_sample

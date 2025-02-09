@@ -520,3 +520,123 @@ class Scenario2_curriculum(Scenario2):
                     print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
                 break
         return done, info
+    
+    class Scenario2_Hybrid(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
+        def __init__(self, config: str):
+            HierarchicalMultipleCombatTask.__init__(self, config)
+            self.reward_functions = [
+                PostureReward(self.config),
+                AltitudeReward(self.config),
+                EventDrivenReward(self.config),
+                ShootPenaltyReward(self.config)
+            ]
+
+        def load_observation_space(self):
+            return MultipleCombatShootMissileTask.load_observation_space(self)
+
+        @property
+        def num_agents(self) -> int:
+            return 4        
+        
+        def load_action_space(self):
+            # altitude control[-0.1,0.1] + heading control[-pi/6,pi/6] + velocity control[-0.5,0.5] + shoot control
+            #self.action_space = spaces.Tuple([spaces.MultiDiscrete([3, 5, 3]), spaces.MultiDiscrete([2, 2, 2, 2])])
+            self.action_space = spaces.Box(low = np.array([-1,-1,-1,-1,-1,-1,-0.5,-0.5,-0.5,-0.5]), \
+                                           high = np.array([1,1,1,1,1,1,1.5,1.5,1.5,1.5]),\
+                                            dtype = np.float32)
+
+        def get_obs(self, env, agent_id):
+            return MultipleCombatShootMissileTask.get_obs(self, env, agent_id)
+
+        def normalize_action(self, env, agent_id, action, action_representation):
+            """Convert high-level action into low-level action.
+            """
+            self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])
+            return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
+
+        def reset(self, env):
+            self._inner_rnn_states = {agent_id: np.zeros((1, 1, 128)) for agent_id in env.agents.keys()}
+            self.remaining_missiles_AIM_9M = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
+            self.remaining_missiles_AIM_120B = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}        
+            self.remaining_gun = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
+            self.remaining_chaff_flare = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
+
+            MultipleCombatShootMissileTask.reset(self, env)
+
+        def step(self, env):
+            MultipleCombatShootMissileTask.step(self, env)
+            for agent_id, agent in env.agents.items():
+                # [RL-based missile launch with limited condition]            
+                shoot_flag_gun = agent.is_alive and self._shoot_action[agent_id][0] and self.remaining_gun[agent_id] > 0
+                shoot_flag_AIM_9M = agent.is_alive and self._shoot_action[agent_id][1] and self.remaining_missiles_AIM_9M[agent_id] > 0
+                shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
+                shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][3] and self.remaining_chaff_flare[agent_id] > 0
+
+                if shoot_flag_gun :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage gun duration
+                    avail, enemy = self.a2a_launch_available(agent)
+                    if avail[0]:
+                        target = self.get_target(agent)
+                        enemy.bloods -= 5
+                        #print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
+                        self.remaining_gun[agent_id] -= 1
+                
+                if shoot_flag_AIM_120B :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage long-range missile duration
+                    avail, _ = self.a2a_launch_available(agent)
+                    if avail[1]:
+                        new_missile_uid = agent_id + str(self.remaining_missiles_AIM_120B[agent_id])
+                        target = self.get_target(agent)
+                        self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
+                            AIM_120B.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-120B"))
+                        self.remaining_missiles_AIM_120B[agent_id] -= 1
+
+                if shoot_flag_AIM_9M :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage middle-range missile duration
+                    avail, _ = self.a2a_launch_available(agent)
+                    if avail[2]:
+                        new_missile_uid = agent_id + str(self.remaining_missiles_AIM_9M[agent_id])
+                        target = self.get_target(agent)
+                        self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
+                            AIM_9M.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-9M"))
+                        self.remaining_missiles_AIM_9M[agent_id] -= 1
+                
+                if shoot_flag_chaff_flare :#and (self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # valid condition for chaff: can be bursted after the end of last chaff
+                    for missiles in env._tempsims.values():
+                        if missiles.target_aircraft == agent and missiles.target_distance < 1000:
+                            new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
+                            self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
+                                ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
+                            self.remaining_chaff_flare[agent_id] -= 1
+                            
+        def a2a_launch_available(self, agent):
+            ret = [False, False, False]
+            munition_info = {
+                # KM / DEG
+                "GUN": {"dist" : 3, "AO" : 5},
+                "AIM-120B" : {"dist" : 37, "AO" : 90},
+                "AIM-9M" : {"dist" : 7, "AO" : 90},
+            }
+            rad_missile_name_list = ["AIM-120B"]
+            
+            enemy = self.get_target(agent)
+            target = enemy.get_position() - agent.get_position()
+            heading = agent.get_velocity()
+            distance = np.linalg.norm(target)
+            attack_angle = np.rad2deg(np.arccos(np.clip(np.sum(target * heading) / (distance * np.linalg.norm(heading) + 1e-8), -1, 1)))
+            
+            if distance / 1000 < munition_info["GUN"]["dist"] and attack_angle < munition_info["GUN"]["AO"]:
+                ret[0] = True 
+            
+            if distance / 1000 < munition_info["AIM-120B"]["dist"] and attack_angle < munition_info["AIM-120B"]["AO"]:
+                ret[1] = True 
+            
+            if distance / 1000 < munition_info["AIM-9M"]["dist"] and attack_angle < munition_info["AIM-9M"]["AO"]:
+                ret[2] = True
+            
+            return ret, enemy
+            
+        def get_target(self, agent):
+            target_distances = []
+            for enemy in agent.enemies:
+                target = enemy.get_position() - agent.get_position()
+                distance = np.linalg.norm(target)
+                target_distances.append(distance)
+            return agent.enemies[np.argmax(target_distances)]
