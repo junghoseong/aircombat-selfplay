@@ -83,14 +83,16 @@ class VAE(nn.Module):
 
 class Action_representation(nn.Module):
     def __init__(self,
-                 state_dim,
+                 obs_dim,
+                 share_obs_dim,
                  discrete_action_dim,
                  continuous_action_dim,
                  #reduced_action_dim=2,
                  #reduce_parameter_action_dim=2,
-                 latent_action_dim = 2,
+                 continuous_embedding_dim = 2,
                  embed_lr=1e-4,
                  ):
+        #TODO: dim -> space(runner:39)
         super(Action_representation, self).__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.parameter_action_dim = continuous_action_dim
@@ -99,7 +101,7 @@ class Action_representation(nn.Module):
         self.discrete_action_dim = discrete_action_dim
         # Action embeddings to project the predicted action into original dimensions
         # latent_dim=action_dim*2+parameter_action_dim*2
-        self.latent_dim = latent_action_dim
+        self.latent_dim = continuous_embedding_dim
         self.embed_lr = embed_lr
         self.vae = VAE(state_dim=self.state_dim, discrete_action_dim=self.action_dim,
                        continuous_action_dim=self.parameter_action_dim,

@@ -36,6 +36,7 @@ class HybridJSBSimRunner(Runner):
             raise NotImplementedError
         self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
+        self.action_representation = Action_representation(self.obs_space,self.share_obs_space,self.discrete_action_space,self.continuous_action_space)
         
         if self.mutual_support: #MI can be stimulated in the latent space?
             from algorithms.utils.discriminator import Discriminator
@@ -94,10 +95,10 @@ class HybridJSBSimRunner(Runner):
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, infors = self.envs.step(actions)
+                    obs, share_obs, rewards, dones, infors = self.envs.step(actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions)
+                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions,self.action_representation)
                 
                 if self.mutual_support:
                     # Compute intrinsic rewards based on the current state

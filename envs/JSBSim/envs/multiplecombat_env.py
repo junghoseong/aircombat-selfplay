@@ -112,7 +112,7 @@ class MultipleCombatEnv(BaseEnv):
             sim.reload(init_states[idx])
         self._tempsims.clear()
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
+    def step(self, action: np.ndarray,action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Run one timestep of the environment's dynamics. When end of
         episode is reached, you are responsible for calling `reset()`
         to reset this environment's observation. Accepts an action and
@@ -135,7 +135,7 @@ class MultipleCombatEnv(BaseEnv):
         # apply actions
         action = self._unpack(action)
         for agent_id in self.agents.keys():
-            a_action = self.task.normalize_action(self, agent_id, action[agent_id])
+            a_action = self.task.normalize_action(self, agent_id, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
         # run simulation
         for _ in range(self.agent_interaction_steps):
