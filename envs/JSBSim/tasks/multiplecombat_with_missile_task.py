@@ -539,16 +539,20 @@ class Scenario2_curriculum(Scenario2):
             return 4        
         
         def load_action_space(self):
-            # altitude control[-0.1,0.1] + heading control[-pi/6,pi/6] + velocity control[-0.5,0.5] + shoot control
+            # altitude control[-0.1,0.1] + heading control[-pi/6,pi/6] + velocity control[-0.05,0.05] + shoot control
             #self.action_space = spaces.Tuple([spaces.MultiDiscrete([3, 5, 3]), spaces.MultiDiscrete([2, 2, 2, 2])])
             self.action_space = spaces.Box(low = np.array([-1,-1,-1,-1,-1,-1,-0.5,-0.5,-0.5,-0.5]), \
                                            high = np.array([1,1,1,1,1,1,1.5,1.5,1.5,1.5]),\
                                             dtype = np.float32)
+            self.discrete_action_space = spaces.Multidiscrete([2,2,2,2])
+            self.continuous_action_space = spaces.Box(low = np.array([-0.1,-np.pi/6,-0.05]),high = np.array([0.1,np.pi/6,0.05]),dtype = np.float32)
+            self.discrete_embedding_space = spaces.Multidiscrete([2,2,2,2])
+            self.continuous_embedding_space = spaces.Box(low = -np.ones(6), high = np.ones(6),dtype = np.float32)
 
         def get_obs(self, env, agent_id):
             return MultipleCombatShootMissileTask.get_obs(self, env, agent_id)
 
-        def normalize_action(self, env, agent_id, action, action_representation):
+        def normalize_action(self, env, agent_id, action, action_representation): #must make actionrepresentation to come here
             """Convert high-level action into low-level action.
             """
             self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])

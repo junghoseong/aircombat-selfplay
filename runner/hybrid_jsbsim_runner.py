@@ -7,6 +7,7 @@ import torch
 
 from algorithms.utils.buffer import SharedHybridReplayBuffer
 from .base_runner import Runner
+from algorithms.utils.hybrid_action_embedder import Action_representation
 
 
 def _t2n(x):
@@ -19,6 +20,10 @@ class HybridJSBSimRunner(Runner):
         self.obs_space = self.envs.observation_space
         self.share_obs_space = self.envs.share_observation_space
         self.all_continuous_act_space = self.envs.action_space
+        self.discrete_action_space = self.envs.discrete_action_space
+        self.continuous_action_space = self.envs.continuous_action_space
+        self.discrete_embedding_space = self.envs.discrete_embedding_space
+        self.continuous_embedding_space = self.envs.continuous_embedding_space
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
         self.mutual_support = self.all_args.mutual_support
@@ -40,10 +45,10 @@ class HybridJSBSimRunner(Runner):
         # buffer
         if self.use_selfplay:
             self.buffer = SharedHybridReplayBuffer(self.all_args, self.num_agents // 2, self.obs_space, self.share_obs_space, \
-                                                   self.act_space)
+                                                   self.discrete_action_space,self.continuous_action_space,self.all_continuous_act_space,self.discrete_embedding_space,self.continuous_embedding_space)
         else:
             self.buffer = SharedHybridReplayBuffer(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, \
-                                                   self.act_space)
+                                                   self.discrete_action_space,self.continuous_action_space,self.all_continuous_act_space,self.discrete_embedding_space,self.continuous_embedding_space)
 
         # [Selfplay] allocate memory for opponent policy/data in training
         if self.use_selfplay:

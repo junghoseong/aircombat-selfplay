@@ -81,7 +81,7 @@ class VAE(nn.Module):
         if raw: return continuous_action_decoded, state_shift
         #return self.max_action * torch.tanh(continuous_action_decoded), torch.tanh(state_shift)
 
-class Action_representation(NeuralNet):
+class Action_representation(nn.Module):
     def __init__(self,
                  state_dim,
                  discrete_action_dim,
@@ -168,13 +168,7 @@ class Action_representation(NeuralNet):
             action_c, state = self.vae.decode(state, z, discrete_action)
         return action_c.cpu().data.numpy().flatten()   
 
-    # def select_delta_state(self, state, z, action):
-    #     with torch.no_grad():
-    #         state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-    #         z = torch.FloatTensor(z.reshape(1, -1)).to(self.device)
-    #         action = torch.FloatTensor(action.reshape(1, -1)).to(self.device)
-    #         action_c, state = self.vae.decode(state, z, action)
-    #     return state.cpu().data.numpy().flatten()
+
     def select_delta_state(self, state, z, action):
         with torch.no_grad():
             _, state = self.vae.decode(state, z, action)

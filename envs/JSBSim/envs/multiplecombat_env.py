@@ -19,6 +19,22 @@ class MultipleCombatEnv(BaseEnv):
     @property
     def share_observation_space(self):
         return self.task.share_observation_space
+    
+    @property
+    def discrete_action_space(self):
+        return self.task.discrete_action_space
+    
+    @property
+    def continuous_action_space(self):
+        return self.task.continuous_action_space
+    
+    @property
+    def continuous_embedding_space(self):
+        return self.task.continuous_embedding_space
+    
+    @property
+    def discrete_embedding_space(self):
+        return self.task.discrete_embedding_space
 
     def load_task(self):
         taskname = getattr(self.config, 'task', None)
