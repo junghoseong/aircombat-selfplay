@@ -551,7 +551,7 @@ class SharedHybridReplayBuffer(Buffer):
         # NOTE: active_masks[t, :, i] represents whether agent[i] is alive in obs[t] .... differ in different agents
         self.active_masks = np.ones_like(self.masks)
         # pi(a)
-        self.action_log_probs = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *act_shape), dtype=np.float32)
+        self.action_log_probs = np.zeros((self.buffer_size, self.n_rollout_threads, self.num_agents, *all_continuous_act_shape), dtype=np.float32)
         # V(o), R(o) while advantage = returns - value_preds
         self.value_preds = np.zeros((self.buffer_size + 1, self.n_rollout_threads, self.num_agents, 1), dtype=np.float32)
         self.returns = np.zeros((self.buffer_size + 1, self.n_rollout_threads, self.num_agents, 1), dtype=np.float32)
@@ -812,7 +812,7 @@ class SharedHybridReplayBuffer(Buffer):
             obs_batch_sample = obs_batch[indices, :, :, :]
             next_obs_batch_sample = next_obs_batch[indices, :, :, :]
             share_obs_batch_sample = share_obs_batch[indices, :, :, :]
-            next_share_obs_batch_sample = next_share_obs_batch_sample[indices, :, :, :]
+            next_share_obs_batch_sample = next_share_obs_batch[indices, :, :, :]
             discrete_actions_batch_sample = discrete_actions_batch[indices, :, :, :]
             continuous_actions_batch_sample = continuous_actions_batch[indices, :, :, :]
             all_continuous_actions_batch_sample = all_continuous_actions_batch[indices, :, :, :]

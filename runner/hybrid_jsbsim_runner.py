@@ -35,13 +35,13 @@ class HybridJSBSimRunner(Runner):
             from algorithms.mappo_hybrid.ppo_policy import PPOPolicy as Policy
         else:
             raise NotImplementedError
-        self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+        self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
         self.action_representation = Action_representation(self.all_args,self.obs_space,self.share_obs_space,self.discrete_action_space,self.continuous_action_space, self.continuous_embedding_space, device = self.device)
         
         if self.mutual_support: #MI can be stimulated in the latent space?
             from algorithms.utils.discriminator import Discriminator
-            self.disc = Discriminator(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+            self.disc = Discriminator(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
             self.intrinsic_ratio = self.all_args.intrinsic_ratio
 
         # buffer
@@ -63,7 +63,7 @@ class HybridJSBSimRunner(Runner):
                 .format(self.all_args.n_choose_opponents, self.n_rollout_threads)
             self.policy_pool = {'latest': self.all_args.init_elo}  # type: dict[str, float]
             self.opponent_policy = [
-                Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+                Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
                 for _ in range(self.all_args.n_choose_opponents)]
             self.opponent_env_split = np.array_split(np.arange(self.n_rollout_threads), len(self.opponent_policy))
             self.opponent_obs = np.zeros_like(self.buffer.obs[0])
@@ -71,7 +71,7 @@ class HybridJSBSimRunner(Runner):
             self.opponent_masks = np.ones_like(self.buffer.masks[0])
 
             if self.use_eval:
-                self.eval_opponent_policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+                self.eval_opponent_policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
 
             logging.info("\n Load selfplay opponents: Algo {}, num_opponents {}.\n"
                          .format(self.all_args.selfplay_algorithm, self.all_args.n_choose_opponents))
@@ -99,10 +99,10 @@ class HybridJSBSimRunner(Runner):
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, infors = self.envs.step(actions,self.action_representation)
+                    obs, share_obs, rewards, dones, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions,self.action_representation) #action is processed in 'tasks'
+                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(obs,share_obs,actions,self.action_representation) #action is processed in 'tasks'
                 
                 if self.mutual_support:
                     # Compute intrinsic rewards based on the current state
@@ -157,6 +157,7 @@ class HybridJSBSimRunner(Runner):
                 self.log_info(train_infos, self.total_num_steps)
                 if self.mutual_support:
                     self.log_info(train_infos_disc, self.total_num_steps)
+                self.log_info(train_infos_action,self.total_num_steps)
 
             # eval
             if episode % self.eval_interval == 0 and self.use_eval:
@@ -179,6 +180,9 @@ class HybridJSBSimRunner(Runner):
             for step in range(self.buffer_size - 1):
                 # Sample actions
                 values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
+                if obs is None and share_obs is None:
+                    obs, share_obs, rewards, dones, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
+                    continue # Skip further processing for the first step
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
@@ -456,6 +460,8 @@ class HybridJSBSimRunner(Runner):
         torch.save(policy_actor_state_dict, str(self.save_dir) + '/actor_latest.pt')
         policy_critic_state_dict = self.policy.critic.state_dict()
         torch.save(policy_critic_state_dict, str(self.save_dir) + '/critic_latest.pt')
+        vae_state_dict = self.action_representation.vae.state_dict()
+        torch.save(vae_state_dict, str(self.save_dir) + '/vae_latest.pt')
         
         if self.mutual_support:
             discriminator_state_dict = self.disc.state_dict()
@@ -464,6 +470,7 @@ class HybridJSBSimRunner(Runner):
         # [Selfplay] save policy & performance
         if self.use_selfplay:
             torch.save(policy_actor_state_dict, str(self.save_dir) + f'/actor_{episode}.pt')
+            torch.save(vae_state_dict, str(self.save_dir) + f'/vae_{episode}.pt')
             if self.mutual_support:
                 torch.save(discriminator_state_dict, str(self.save_dir) + f'/discriminator_{episode}.pt')
             self.policy_pool[str(episode)] = self.all_args.init_elo

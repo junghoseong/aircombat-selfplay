@@ -2,7 +2,7 @@ import numpy as np
 from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
-from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3, Scenario2_curriculum
+from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3, Scenario2_curriculum, Scenario2_Hybrid
 from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -54,6 +54,8 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario3_for_KAI(self.config)
         elif taskname == 'scenario2_curriculum':
             self.task = Scenario2_curriculum(self.config)
+        elif taskname == 'scenario2_hybrid':
+            self.task = Scenario2_Hybrid(self.config)
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 
@@ -112,7 +114,7 @@ class MultipleCombatEnv(BaseEnv):
             sim.reload(init_states[idx])
         self._tempsims.clear()
 
-    def step(self, obs:np.ndarray, share_obs:np.ndarray, action: np.ndarray,action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
+    def step(self, share_obs:np.ndarray, action: np.ndarray,action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Run one timestep of the environment's dynamics. When end of
         episode is reached, you are responsible for calling `reset()`
         to reset this environment's observation. Accepts an action and
@@ -135,7 +137,7 @@ class MultipleCombatEnv(BaseEnv):
         # apply actions
         action = self._unpack(action)
         for agent_id in self.agents.keys():
-            a_action = self.task.normalize_action(self, agent_id, obs[agent_id], share_obs[agent_id], action[agent_id],action_representation)
+            a_action = self.task.normalize_action(self, agent_id, share_obs, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
         # run simulation
         for _ in range(self.agent_interaction_steps):

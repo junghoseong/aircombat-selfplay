@@ -521,7 +521,7 @@ class Scenario2_curriculum(Scenario2):
                 break
         return done, info
     
-    class Scenario2_Hybrid(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
+class Scenario2_Hybrid(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
         def __init__(self, config: str):
             HierarchicalMultipleCombatTask.__init__(self, config)
             self.reward_functions = [
@@ -543,11 +543,11 @@ class Scenario2_curriculum(Scenario2):
             #self.action_space = spaces.Tuple([spaces.MultiDiscrete([3, 5, 3]), spaces.MultiDiscrete([2, 2, 2, 2])])
             self.action_space = spaces.Box(low = np.array([-1,-1,-1,-1,-1,-1,-0.5,-0.5,-0.5,-0.5]), \
                                            high = np.array([1,1,1,1,1,1,1.5,1.5,1.5,1.5]),\
-                                            dtype = np.float32)
-            self.discrete_action_space = spaces.Multidiscrete([2,2,2,2])
-            self.continuous_action_space = spaces.Box(low = np.array([-0.1,-np.pi/6,-0.05]),high = np.array([0.1,np.pi/6,0.05]),dtype = np.float32)
-            self.discrete_embedding_space = spaces.Multidiscrete([2,2,2,2])
-            self.continuous_embedding_space = spaces.Box(low = -np.ones(6), high = np.ones(6),dtype = np.float32)
+                                            dtype = np.float64)
+            self.discrete_action_space = spaces.MultiDiscrete([2,2,2,2])
+            self.continuous_action_space = spaces.Box(low = np.array([-0.1,-np.pi/6,-0.05]),high = np.array([0.1,np.pi/6,0.05]),dtype = np.float64)
+            self.discrete_embedding_space = spaces.MultiDiscrete([2,2,2,2])
+            self.continuous_embedding_space = spaces.Box(low = -np.ones(6), high = np.ones(6),dtype = np.float64)
 
         def get_obs(self, env, agent_id):
             return MultipleCombatShootMissileTask.get_obs(self, env, agent_id)

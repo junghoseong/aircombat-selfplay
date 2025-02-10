@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch import float32
+#from torch import float32
 import numpy as np
 import itertools
 
@@ -19,7 +19,8 @@ class VAE(nn.Module):
         # init_tensor = torch.rand(action_dim,
         #                          action_embedding_dim) * 2 - 1  # Don't initialize near the extremes.
         # self.embeddings = torch.nn.Parameter(init_tensor.type(float32), requires_grad=True)
-        self.embeddings = torch.tensor(list(itertools.product([0, 1], repeat=discrete_action_dim)), dtype=torch.int)
+        product = list(itertools.product([0, 1], repeat=discrete_action_dim))
+        self.embeddings = torch.tensor(product, dtype=torch.int32)
         # print("self.embeddings", self.embeddings) 
         self.e0_0 = nn.Linear(state_dim + discrete_action_dim, hidden_size)
         self.e0_1 = nn.Linear(continuous_action_dim, hidden_size)
@@ -98,20 +99,22 @@ class Action_representation(nn.Module):
         super(Action_representation, self).__init__()
         self.device = device
         self.tpdv = dict(dtype=torch.float32, device = self.device)
-        self.parameter_action_dim = get_shape_from_space(continuous_action_space)
+        self.parameter_action_dim = get_shape_from_space(continuous_action_space)[0]
         #self.reduced_action_dim = reduced_action_dim
-        self.state_dim = get_shape_from_space(obs_space) + get_shape_from_space(share_obs_space)
-        self.discrete_action_dim = get_shape_from_space(discrete_action_space)
+        self.state_dim = get_shape_from_space(obs_space)[0] + get_shape_from_space(share_obs_space)[0]
+        self.discrete_action_dim = get_shape_from_space(discrete_action_space)[0]
         # Action embeddings to project the predicted action into original dimensions
         # latent_dim=action_dim*2+parameter_action_dim*2
-        self.latent_dim = get_shape_from_space(continuous_embedding_space)
+        self.latent_dim = get_shape_from_space(continuous_embedding_space)[0]
         self.embed_lr = embed_lr
-        self.vae = VAE(state_dim=self.state_dim, discrete_action_dim=self.action_dim,
+        self.vae = VAE(state_dim=self.state_dim, discrete_action_dim=self.discrete_action_dim,
                        continuous_action_dim=self.parameter_action_dim,
                        latent_dim=self.latent_dim, #max_action=1.0,
                        hidden_size=128).to(**self.tpdv)
         self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=1e-4)
         self.ppo_epoch = args.ppo_epoch
+        self.num_mini_batch = args.num_mini_batch
+        self.data_chunk_length = args.data_chunk_length
 
     # def discrete_embedding(self,):
     #     emb = self.vae.embeddings
@@ -136,12 +139,20 @@ class Action_representation(nn.Module):
                 state_pre = np.concatenate((obs_batch, share_obs_batch), axis = -1)
                 state_after = np.concatenate((next_obs_batch,next_share_obs_batch), axis = -1)
 
-                self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)          
+                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4) 
+                train_info['vae_total_loss'] += vae_loss
+                train_info['vae_dynamics_predictive_loss'] += recon_loss_d
+                train_info['vae_action_reconstruct_loss'] += recon_loss_c
+                train_info['vae_KL_loss'] += KL_loss
+
+        num_updates = self.ppo_epoch * self.num_mini_batch
+        for k in train_info.keys():
+            train_info[k] /= num_updates
+
+        return train_info
 
 
-
-
-    def unsupervised_loss(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr): 
+    def unsupervised_loss(self, s1, a_d, a_c, s2, embed_lr): 
 
         a_d = a_d.to(**self.tpdv)
 
@@ -149,7 +160,7 @@ class Action_representation(nn.Module):
         s2 = s2.to(**self.tpdv)
         a_c = a_c.to(**self.tpdv)
 
-        vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, sup_batch_size, embed_lr)
+        vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, embed_lr)
         return vae_loss, recon_loss_d, recon_loss_c, KL_loss
 
     def train_step(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr=1e-4):
@@ -157,8 +168,7 @@ class Action_representation(nn.Module):
         action_d = a_d
         action_c = a_c
         next_state = s2
-        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state,
-                                                                  sup_batch_size)
+        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state)
 
         #self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=embed_lr)
         self.vae_optimizer.zero_grad()
@@ -167,7 +177,7 @@ class Action_representation(nn.Module):
 
         return vae_loss.cpu().data.numpy(), recon_loss_s.cpu().data.numpy(), recon_loss_c.cpu().data.numpy(), KL_loss.cpu().data.numpy()
 
-    def loss(self, state, action_d, action_c, next_state, sup_batch_size):
+    def loss(self, state, action_d, action_c, next_state):
         
         recon_c, recon_s, mean, std = self.vae(state, action_d, action_c)
 

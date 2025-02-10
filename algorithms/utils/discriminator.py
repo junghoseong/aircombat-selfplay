@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
+from gymnasium import spaces
 import numpy as np
 
 from .mlp import MLPBase
@@ -26,9 +26,12 @@ class Discriminator(nn.Module):
 
         # Network config
         self.num_agents = num_agents
-
-        self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
-        self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
+        if isinstance(act_space, spaces.Box):
+            self.input_dim = 2 * act_space.shape[0] + self.recurrent_hidden_size
+            self.input_dim_wo_act = act_space.shape[0] + self.recurrent_hidden_size
+        else: 
+            self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
+            self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
 
         self.output_dim = obs_space.shape[0]
 
