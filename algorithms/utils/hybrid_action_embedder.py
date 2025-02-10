@@ -7,7 +7,8 @@ import numpy as np
 import itertools
 
 from .mlp import MLPBase
-from .utils import check
+from .utils import check, get_shape_from_space
+from ..utils.buffer import SharedHybridReplayBuffer
 
 class VAE(nn.Module):
     def __init__(self, state_dim, discrete_action_dim, continuous_action_dim, latent_dim, #max_action = 1.0,
@@ -83,44 +84,70 @@ class VAE(nn.Module):
 
 class Action_representation(nn.Module):
     def __init__(self,
-                 obs_dim,
-                 share_obs_dim,
-                 discrete_action_dim,
-                 continuous_action_dim,
+                 args,
+                 obs_space,
+                 share_obs_space,
+                 discrete_action_space,
+                 continuous_action_space,
                  #reduced_action_dim=2,
                  #reduce_parameter_action_dim=2,
-                 continuous_embedding_dim = 2,
+                 continuous_embedding_space,
                  embed_lr=1e-4,
+                 device=torch.device("cpu")
                  ):
-        #TODO: dim -> space(runner:39)
         super(Action_representation, self).__init__()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.parameter_action_dim = continuous_action_dim
+        self.device = device
+        self.tpdv = dict(dtype=torch.float32, device = self.device)
+        self.parameter_action_dim = get_shape_from_space(continuous_action_space)
         #self.reduced_action_dim = reduced_action_dim
-        self.state_dim = state_dim
-        self.discrete_action_dim = discrete_action_dim
+        self.state_dim = get_shape_from_space(obs_space) + get_shape_from_space(share_obs_space)
+        self.discrete_action_dim = get_shape_from_space(discrete_action_space)
         # Action embeddings to project the predicted action into original dimensions
         # latent_dim=action_dim*2+parameter_action_dim*2
-        self.latent_dim = continuous_embedding_dim
+        self.latent_dim = get_shape_from_space(continuous_embedding_space)
         self.embed_lr = embed_lr
         self.vae = VAE(state_dim=self.state_dim, discrete_action_dim=self.action_dim,
                        continuous_action_dim=self.parameter_action_dim,
                        latent_dim=self.latent_dim, #max_action=1.0,
-                       hidden_size=128).to(self.device)
+                       hidden_size=128).to(**self.tpdv)
         self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=1e-4)
+        self.ppo_epoch = args.ppo_epoch
 
     # def discrete_embedding(self,):
     #     emb = self.vae.embeddings
 
     #     return emb
 
+    def train(self, buffer:SharedHybridReplayBuffer):
+        train_info = {}
+        train_info['vae_total_loss'] = 0
+        train_info['vae_dynamics_predictive_loss'] = 0
+        train_info['vae_action_reconstruct_loss'] = 0
+        train_info['vae_KL_loss'] = 0
+
+        for _ in range(self.ppo_epoch):
+            data_generator = buffer.random_batch_generator(self.num_mini_batch, self.data_chunk_length)
+
+            # For each chunk of the sequence data
+            for sample in data_generator:
+                obs_batch, next_obs_batch, share_obs_batch, next_share_obs_batch, discrete_actions_batch, continuous_actions_batch,\
+                      actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                
+                state_pre = np.concatenate((obs_batch, share_obs_batch), axis = -1)
+                state_after = np.concatenate((next_obs_batch,next_share_obs_batch), axis = -1)
+
+                self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)          
+
+
+
+
     def unsupervised_loss(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr): 
 
-        a_d = a_d.to(self.device)
+        a_d = a_d.to(**self.tpdv)
 
-        s1 = s1.to(self.device)
-        s2 = s2.to(self.device)
-        a_c = a_c.to(self.device)
+        s1 = s1.to(**self.tpdv)
+        s2 = s2.to(**self.tpdv)
+        a_c = a_c.to(**self.tpdv)
 
         vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, sup_batch_size, embed_lr)
         return vae_loss, recon_loss_d, recon_loss_c, KL_loss
@@ -164,9 +191,9 @@ class Action_representation(nn.Module):
             select continuous action from state, latent vector & discrete actions
         """
         with torch.no_grad():
-            state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-            z = torch.FloatTensor(z.reshape(1, -1)).to(self.device)
-            discrete_action = torch.FloatTensor(discrete_action.reshape(1, -1)).to(self.device)
+            state = torch.FloatTensor(state.reshape(1, -1)).to(**self.tpdv)
+            z = torch.FloatTensor(z.reshape(1, -1)).to(**self.tpdv)
+            discrete_action = torch.FloatTensor(discrete_action.reshape(1, -1)).to(**self.tpdv)
             action_c, state = self.vae.decode(state, z, discrete_action)
         return action_c.cpu().data.numpy().flatten()   
 
@@ -207,7 +234,7 @@ class Action_representation(nn.Module):
         # compute similarity probability based on L2 norm
         embeddings = self.vae.embeddings
         embeddings = torch.tanh(embeddings)
-        action = action.to(self.device)
+        action = action.to(**self.tpdv)
         # compute similarity probability based on L2 norm
         similarity = - self.pairwise_distances(action, embeddings)  # Negate euclidean to convert diff into similarity score
         return similarity

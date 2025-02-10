@@ -7,6 +7,7 @@ import numpy as np
 
 from .mlp import MLPBase
 from .utils import check
+from ..utils.buffer import SharedHybridReplayBuffer
 
 class Discriminator(nn.Module):
     def __init__(self, args, num_agents, obs_space, share_obs_space, act_space, device=torch.device("cpu")):
@@ -26,8 +27,8 @@ class Discriminator(nn.Module):
         # Network config
         self.num_agents = num_agents
 
-        self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size - 7
-        self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size - 4
+        self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
+        self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
 
         self.output_dim = obs_space.shape[0]
 
@@ -52,8 +53,11 @@ class Discriminator(nn.Module):
 
             # For each chunk of the sequence data
             for sample in data_generator:
-
-                obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                if isinstance(buffer,SharedHybridReplayBuffer):
+                    obs_batch, next_obs_batch, share_obs_batch, _, _, _, actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                else:
+                    obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                
 
                 # Update qϕ (influence estimator) and pη (prediction network)
                 disc_loss = self.update_parameters(obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch)
@@ -88,8 +92,8 @@ class Discriminator(nn.Module):
             ### agent 1 ###
             q_input = torch.cat([
                 rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,0,:3],
-                actions_batch[:,thread,1,3:]
+                actions_batch[:,thread,0,:],
+                actions_batch[:,thread,1,:]
             ], dim=-1)
 
             q_pred = self.pred(q_input) 
@@ -97,7 +101,7 @@ class Discriminator(nn.Module):
 
             q_input_wo= torch.cat([
                 rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,0,:3]
+                actions_batch[:,thread,0,:]
             ], dim=-1)
 
             q_pred_wo = self.pred_wo(q_input_wo) 
@@ -106,8 +110,8 @@ class Discriminator(nn.Module):
             ### agent 2 ###
             q_input = torch.cat([
                 rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,1,:3],
-                actions_batch[:,thread,0,3:]
+                actions_batch[:,thread,1,:],
+                actions_batch[:,thread,0,:]
             ], dim=-1)
 
             q_pred = self.pred(q_input)  
@@ -115,7 +119,7 @@ class Discriminator(nn.Module):
 
             q_input_wo= torch.cat([
                 rnn_states_actor_batch[:,thread,0,:],      
-                actions_batch[:,thread,1,:3]
+                actions_batch[:,thread,1,:]
             ], dim=-1)
 
             q_pred_wo = self.pred_wo(q_input_wo)
@@ -153,15 +157,15 @@ class Discriminator(nn.Module):
 
         q_input = torch.cat([
             rnn_states_actors[:,0,:],      
-            actions[:,0,:3],
-            actions[:,1,3:]
+            actions[:,0,:],
+            actions[:,1,:]
         ], dim=-1)
 
         log_prob = self.pred.get_log_pi(q_input, next_obs[:,0,:])
 
         q_input_wo= torch.cat([
             rnn_states_actors[:,0,:],      
-            actions[:,0,:3]
+            actions[:,0,:]
         ], dim=-1)
 
         log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[:,0,:])
@@ -171,8 +175,8 @@ class Discriminator(nn.Module):
         ### agent 2 ###
         q_input = torch.cat([
             rnn_states_actors[:,0,:],      
-            actions[:,1,:3],
-            actions[:,0,3:]
+            actions[:,1,:],
+            actions[:,0,:]
         ], dim=-1)
 
         log_prob = self.pred.get_log_pi(q_input, next_obs[:,1,:])
@@ -180,7 +184,7 @@ class Discriminator(nn.Module):
 
         q_input_wo= torch.cat([
             rnn_states_actors[:,0,:],      
-            actions[:,1,:3]
+            actions[:,1,:]
         ], dim=-1)
 
         log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[:,1,:])
@@ -209,15 +213,15 @@ class Discriminator(nn.Module):
 
         q_input = torch.cat([
             rnn_states_actors,      
-            actions[0,:3],
-            actions[1,3:]
+            actions[0,:],
+            actions[1,:]
         ], dim=-1)
 
         log_prob = self.pred.get_log_pi(q_input, next_obs[0,:])
 
         q_input_wo= torch.cat([
             rnn_states_actors,      
-            actions[0,:3]
+            actions[0,:]
         ], dim=-1)
 
         log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[0,:])
@@ -227,8 +231,8 @@ class Discriminator(nn.Module):
         ### agent 2 ###
         q_input = torch.cat([
             rnn_states_actors,      
-            actions[1,:3],
-            actions[0,3:]
+            actions[1,:],
+            actions[0,:]
         ], dim=-1)
 
         log_prob = self.pred.get_log_pi(q_input, next_obs[1,:])
@@ -236,7 +240,7 @@ class Discriminator(nn.Module):
 
         q_input_wo= torch.cat([
             rnn_states_actors,      
-            actions[1,:3]
+            actions[1,:]
         ], dim=-1)
 
         log_prob_wo = self.pred_wo.get_log_pi(q_input_wo, next_obs[1,:])

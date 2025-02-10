@@ -552,11 +552,13 @@ class Scenario2_curriculum(Scenario2):
         def get_obs(self, env, agent_id):
             return MultipleCombatShootMissileTask.get_obs(self, env, agent_id)
 
-        def normalize_action(self, env, agent_id, action, action_representation): #must make actionrepresentation to come here
+        def normalize_action(self, env, agent_id, obs, share_obs, action, action_representation): #must make actionrepresentation to come here
             """Convert high-level action into low-level action.
             """
             self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])
-            return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
+            state = np.concateneate(obs,share_obs)
+            return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, \
+                                                                   action_representation.select_continuous_action(state,action[:,-4],self._shoot_action).astype(np.float32))#action[:-4].astype(np.int32))type_changed
 
         def reset(self, env):
             self._inner_rnn_states = {agent_id: np.zeros((1, 1, 128)) for agent_id in env.agents.keys()}

@@ -656,7 +656,9 @@ class SharedHybridReplayBuffer(Buffer):
             data_chunk_length (int): length of sequence chunks with which to train RNN.
 
         Returns:
-            (obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, \
+            (obs_batch, share_obs_batch,\
+                  discrete_actions_batch, continuous_actions_batch, all_continuous_actions_batch, discrete_embeddings_batch, continuous_embeddings_batch, \
+                  masks_batch, active_masks_batch, \
                 old_action_log_probs_batch, advantages_batch, returns_batch, value_preds_batch, \
                 rnn_states_actor_batch, rnn_states_critic_batch)
         """
@@ -794,6 +796,7 @@ class SharedHybridReplayBuffer(Buffer):
 
         # Newly added: Next time-step observations
         next_obs_batch = self.obs[1:]  # Corresponding to obs[t+1]
+        next_share_obs_batch = self.share_obs[1:]
 
         # Extract data shape and shuffle along the first dimension
         max_buffer_size, rollout_threads, agent_num, _ = obs_batch.shape
@@ -809,6 +812,7 @@ class SharedHybridReplayBuffer(Buffer):
             obs_batch_sample = obs_batch[indices, :, :, :]
             next_obs_batch_sample = next_obs_batch[indices, :, :, :]
             share_obs_batch_sample = share_obs_batch[indices, :, :, :]
+            next_share_obs_batch_sample = next_share_obs_batch_sample[indices, :, :, :]
             discrete_actions_batch_sample = discrete_actions_batch[indices, :, :, :]
             continuous_actions_batch_sample = continuous_actions_batch[indices, :, :, :]
             all_continuous_actions_batch_sample = all_continuous_actions_batch[indices, :, :, :]
@@ -823,6 +827,7 @@ class SharedHybridReplayBuffer(Buffer):
                 obs_batch_sample,
                 next_obs_batch_sample,
                 share_obs_batch_sample,
+                next_share_obs_batch_sample,
                 discrete_actions_batch_sample,
                 continuous_actions_batch_sample,
                 all_continuous_actions_batch_sample,

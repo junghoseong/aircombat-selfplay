@@ -27,6 +27,7 @@ class HybridJSBSimRunner(Runner):
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
         self.mutual_support = self.all_args.mutual_support
+        
 
         # policy & algorithm
         if self.algorithm_name == "mappo":
@@ -36,7 +37,7 @@ class HybridJSBSimRunner(Runner):
             raise NotImplementedError
         self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
-        self.action_representation = Action_representation(self.obs_space,self.share_obs_space,self.discrete_action_space,self.continuous_action_space)
+        self.action_representation = Action_representation(self.all_args,self.obs_space,self.share_obs_space,self.discrete_action_space,self.continuous_action_space, self.continuous_embedding_space, device = self.device)
         
         if self.mutual_support: #MI can be stimulated in the latent space?
             from algorithms.utils.discriminator import Discriminator
@@ -74,14 +75,17 @@ class HybridJSBSimRunner(Runner):
 
             logging.info("\n Load selfplay opponents: Algo {}, num_opponents {}.\n"
                          .format(self.all_args.selfplay_algorithm, self.all_args.n_choose_opponents))
+        self.vae_steps = self.buffer_size * self.n_rollout_threads
 
         if self.model_dir is not None:
             self.restore()
 
     def run(self):
-        self.warmup()
-
         start = time.time()
+        vae_episodes = self.vae_steps // self.buffer_size // self.n_rollout_threads
+
+        self.warmup(vae_episodes)
+
         self.total_num_steps = 0
         episodes = self.num_env_steps // self.buffer_size // self.n_rollout_threads
 
@@ -91,22 +95,31 @@ class HybridJSBSimRunner(Runner):
 
             for step in range(self.buffer_size - 1):
                 # Sample actions
-                values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
+                values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step) #latent action
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
                     obs, share_obs, rewards, dones, infors = self.envs.step(actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions,self.action_representation)
+                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(actions,self.action_representation) #action is processed in 'tasks'
                 
                 if self.mutual_support:
                     # Compute intrinsic rewards based on the current state
                     int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
                     rewards += int_rewards * self.intrinsic_ratio
                 
+                discrete_embeddings = actions[:,:,-4:]
+                continuous_embeddings = actions[:,:,:-4]
+                all_continuous_actions = actions
+                rollout_threads, agent_num, discrete_embeddings_shape = discrete_embeddings.shape
+                _,_, continuous_embeddings_shape = continuous_embeddings.shape
+                discrete_actions = self.action_representation.select_discrete_action(discrete_embeddings.view(-1,discrete_embeddings_shape)).view(rollout_threads,agent_num,-1)
+                continuous_actions = self.action_representation.select_continuous_action(continuous_embeddings.view(-1,continuous_embeddings_shape)).view(rollout_threads,agent_num,-1)
+
                 # insert data into buffer
-                data = obs, share_obs, actions, rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
+                data = obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
+                    , rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
                 self.insert(data)
                 
                 # Update the state for the next step
@@ -115,9 +128,9 @@ class HybridJSBSimRunner(Runner):
             # compute return and update network
             self.compute()
             if self.mutual_support:
-                train_infos, train_infos_disc = self.train()
+                train_infos, train_infos_disc, train_infos_action= self.train()
             else:
-                train_infos = self.train()
+                train_infos, train_infos_action = self.train()
 
             # post process
             self.total_num_steps = (episode + 1) * self.buffer_size * self.n_rollout_threads
@@ -149,7 +162,7 @@ class HybridJSBSimRunner(Runner):
             if episode % self.eval_interval == 0 and self.use_eval:
                 self.eval(self.total_num_steps)
 
-    def warmup(self):
+    def warmup(self,vae_episodes):
         # reset env
         obs, share_obs = self.envs.reset()
         # [Selfplay] divide ego/opponent of initial obs
@@ -160,6 +173,49 @@ class HybridJSBSimRunner(Runner):
         self.buffer.step = 0
         self.buffer.obs[0] = obs.copy()
         self.buffer.share_obs[0] = share_obs.copy()
+        for episode in range(vae_episodes):
+            obs, share_obs = None, None
+
+            for step in range(self.buffer_size - 1):
+                # Sample actions
+                values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
+
+                # Initialize the state if it is the first step
+                if obs is None and share_obs is None:
+                    obs, share_obs, rewards, dones, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
+                    continue # Skip further processing for the first step
+                
+                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(obs,share_obs,actions,self.action_representation)
+                
+                if self.mutual_support:
+                    # Compute intrinsic rewards based on the current state, full parameters
+                    int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
+                    rewards += int_rewards * self.intrinsic_ratio
+                #actions in [N->thread,M->agent,shape]
+                discrete_embeddings = actions[:,:,-4:]
+                continuous_embeddings = actions[:,:,:-4]
+                all_continuous_actions = actions
+                rollout_threads, agent_num, discrete_embeddings_shape = discrete_embeddings.shape
+                _,_, continuous_embeddings_shape = continuous_embeddings.shape
+                discrete_actions = self.action_representation.select_discrete_action(discrete_embeddings.view(-1,discrete_embeddings_shape)).view(rollout_threads,agent_num,-1)
+                continuous_actions = self.action_representation.select_continuous_action(continuous_embeddings.view(-1,continuous_embeddings_shape)).view(rollout_threads,agent_num,-1)
+
+
+                # insert data into buffer
+                data = obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
+                    , rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
+                self.insert(data)
+                
+                # Update the state for the next step
+                obs, share_obs = next_obs, next_share_obs
+
+            # compute return and update network
+
+            self.action_representation.train(self.buffer)
+            self.buffer.after_update()
+
+
+
 
     @torch.no_grad()
     def collect(self, step):
@@ -202,7 +258,8 @@ class HybridJSBSimRunner(Runner):
         self.buffer.compute_returns(next_values)
 
     def insert(self, data: List[np.ndarray]):
-        obs, share_obs, actions, rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic = data
+        obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings, \
+                    rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic= data
         dones = dones.squeeze(axis=-1)
         dones_env = np.all(dones, axis=-1)
 
@@ -222,13 +279,18 @@ class HybridJSBSimRunner(Runner):
 
             obs = obs[:, :self.num_agents // 2, ...]
             share_obs = share_obs[:, :self.num_agents // 2, ...]
-            actions = actions[:, :self.num_agents // 2, ...]
+            discrete_actions = discrete_actions[:, :self.num_agents // 2, ...]
+            continuous_actions = continuous_actions[:, :self.num_agents // 2, ...]
+            all_continuous_actions = all_continuous_actions[:, :self.num_agents // 2, ...]
+            discrete_embeddings = discrete_embeddings[:, :self.num_agents // 2, ...]
+            continuous_embeddings = continuous_embeddings[:, :self.num_agents // 2, ...]
             rewards = rewards[:, :self.num_agents // 2, ...]
             masks = masks[:, :self.num_agents // 2, ...]
             active_masks = active_masks[:, :self.num_agents // 2, ...]
 
-        self.buffer.insert(obs, share_obs, actions, rewards, masks, action_log_probs, values, \
-            rnn_states_actor, rnn_states_critic, active_masks = active_masks)
+        self.buffer.insert(obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings,\
+                            rewards, masks, action_log_probs, values, \
+                         rnn_states_actor, rnn_states_critic, active_masks = active_masks)
 
     @torch.no_grad()
     def eval(self, total_num_steps):
@@ -287,7 +349,7 @@ class HybridJSBSimRunner(Runner):
                 eval_actions = np.concatenate((eval_actions, eval_opponent_actions), axis=1)
 
             # Obser reward and next obs
-            eval_obs, eval_share_obs, eval_rewards, eval_dones, eval_infos = self.eval_envs.step(eval_actions)
+            eval_obs, eval_share_obs, eval_rewards, eval_dones, eval_infos = self.eval_envs.step(eval_obs,eval_share_obs,eval_actions,self.action_representation)
 
             # [Selfplay] get ego reward
             if self.use_selfplay:
@@ -382,11 +444,12 @@ class HybridJSBSimRunner(Runner):
         train_infos = self.trainer.train(self.policy, self.buffer)
         if self.mutual_support:
             train_infos_disc = self.disc.train(self.buffer)
+        train_infos_action = self.action_representation.train(self.buffer)
         self.buffer.after_update()
         if self.mutual_support:
-            return train_infos, train_infos_disc
+            return train_infos, train_infos_disc, train_infos_action
         else:
-            return train_infos
+            return train_infos, train_infos_action
 
     def save(self, episode):
         policy_actor_state_dict = self.policy.actor.state_dict()
