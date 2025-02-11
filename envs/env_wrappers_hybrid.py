@@ -427,7 +427,7 @@ def shareworker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
         env_fn_wrappers (method): functions to create gym.Env instance.
     """
     def step_env(env, pre_obs, pre_share_obs, action, action_representation):
-        obs, share_obs, reward, done, info = env.step(pre_obs, pre_share_obs, action, action_representation)
+        obs, share_obs, reward, done, continuous_actions, discrete_actions, info = env.step(pre_obs, pre_share_obs, action, action_representation)
         if 'bool' in done.__class__.__name__:
             if done:
                 obs, share_obs = env.reset()
@@ -439,7 +439,7 @@ def shareworker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
                 obs, share_obs = env.reset()
         else:
             raise NotImplementedError("Unexpected type of done!")
-        return obs, share_obs, reward, done, info
+        return obs, share_obs, reward, done, continuous_actions, discrete_actions, info
 
     parent_remote.close()
     envs = [env_fn_wrapper() for env_fn_wrapper in env_fn_wrappers.x]
@@ -504,7 +504,6 @@ class ShareSubprocHybridVecEnv(SubprocHybridVecEnv, ShareHybridVecEnv):
             pre_share_obss = np.zeros((self.nremotes, self.num_agents, get_shape_from_space(self.share_observation_space)[0]))
         actions = np.array_split(actions, self.nremotes)
         pre_obss = np.array_split(pre_obss, self.nremotes)
-        print("self.nremotes",self.nremotes)
         pre_share_obss = np. array_split(pre_share_obss, self.nremotes)
 
         for remote, pre_obs, pre_share_obs, action in zip(self.remotes, pre_obss, pre_share_obss, actions):
@@ -516,8 +515,9 @@ class ShareSubprocHybridVecEnv(SubprocHybridVecEnv, ShareHybridVecEnv):
         results = [remote.recv() for remote in self.remotes]
         results = self._flatten_series(results) # [[tuple] * in_series] * nremotes => [tuple] * nenvs
         self.waiting = False
-        obs, share_obs, rewards, dones, infos = zip(*results) 
-        return self._flatten(obs), self._flatten(share_obs), self._flatten(rewards), self._flatten(dones), np.array(infos)
+        obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infos = zip(*results) 
+        return self._flatten(obs), self._flatten(share_obs), self._flatten(rewards), self._flatten(dones),\
+             self._flatten(continuous_actions),self._flatten(discrete_actions), np.array(infos)
 
     def reset(self):
         self._assert_not_closed()

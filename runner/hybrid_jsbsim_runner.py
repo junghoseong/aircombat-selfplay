@@ -4,6 +4,7 @@ from typing import List
 
 import numpy as np
 import torch
+import gymnasium as gym
 
 from algorithms.utils.buffer import SharedHybridReplayBuffer
 from .base_runner import Runner
@@ -99,10 +100,10 @@ class HybridJSBSimRunner(Runner):
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
+                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(obs,share_obs,actions,self.action_representation) #action is processed in 'tasks'
+                next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation) #action is processed in 'tasks'
                 
                 if self.mutual_support:
                     # Compute intrinsic rewards based on the current state
@@ -112,11 +113,6 @@ class HybridJSBSimRunner(Runner):
                 discrete_embeddings = actions[:,:,-4:]
                 continuous_embeddings = actions[:,:,:-4]
                 all_continuous_actions = actions
-                rollout_threads, agent_num, discrete_embeddings_shape = discrete_embeddings.shape
-                _,_, continuous_embeddings_shape = continuous_embeddings.shape
-                discrete_actions = self.action_representation.select_discrete_action(discrete_embeddings.view(-1,discrete_embeddings_shape)).view(rollout_threads,agent_num,-1)
-                continuous_actions = self.action_representation.select_continuous_action(continuous_embeddings.view(-1,continuous_embeddings_shape)).view(rollout_threads,agent_num,-1)
-
                 # insert data into buffer
                 data = obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
                     , rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
@@ -133,7 +129,7 @@ class HybridJSBSimRunner(Runner):
                 train_infos, train_infos_action = self.train()
 
             # post process
-            self.total_num_steps = (episode + 1) * self.buffer_size * self.n_rollout_threads
+            self.total_num_steps += self.buffer_size * self.n_rollout_threads
 
             # save model
             if (episode % self.save_interval == 0) or (episode == episodes - 1):
@@ -177,19 +173,16 @@ class HybridJSBSimRunner(Runner):
         for episode in range(vae_episodes):
             obs, share_obs = None, None
 
-            for step in range(self.buffer_size - 1):
+            for step in range(300):#range(self.buffer_size - 1):
                 # Sample actions
                 values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
-                if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
-                    continue # Skip further processing for the first step
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
+                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, next_share_obs, rewards, dones, infos = self.envs.step(obs,share_obs,actions,self.action_representation)
+                next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation)
                 
                 if self.mutual_support:
                     # Compute intrinsic rewards based on the current state, full parameters
@@ -199,11 +192,12 @@ class HybridJSBSimRunner(Runner):
                 discrete_embeddings = actions[:,:,-4:]
                 continuous_embeddings = actions[:,:,:-4]
                 all_continuous_actions = actions
-                rollout_threads, agent_num, discrete_embeddings_shape = discrete_embeddings.shape
-                _,_, continuous_embeddings_shape = continuous_embeddings.shape
-                discrete_actions = self.action_representation.select_discrete_action(discrete_embeddings.view(-1,discrete_embeddings_shape)).view(rollout_threads,agent_num,-1)
-                continuous_actions = self.action_representation.select_continuous_action(continuous_embeddings.view(-1,continuous_embeddings_shape)).view(rollout_threads,agent_num,-1)
-
+                # print("obs_shape",obs.shape)
+                # print("discrete_actions_shape",discrete_actions.shape)
+                # print("continuous_action_shape",continuous_actions.shape)
+                # print("all shape",all_continuous_actions.shape)
+                # print("dis_emb_shape",discrete_embeddings.shape)
+                # print("con_emb_shape",continuous_embeddings.shape)
 
                 # insert data into buffer
                 data = obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
@@ -215,9 +209,12 @@ class HybridJSBSimRunner(Runner):
 
             # compute return and update network
 
-            self.action_representation.train(self.buffer)
+            train_infos_action = self.action_representation.train(self.buffer)
             self.buffer.after_update()
 
+            self.total_num_steps += self.buffer_size * self.n_rollout_threads
+            logging.info("average episode rewards is {}".format(train_infos_action["vae_total_loss"]))
+            self.log_info(train_infos_action,self.total_num_steps)
 
 
 

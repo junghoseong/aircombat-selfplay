@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-#from torch import float32
+from torch import float32
 import numpy as np
 import itertools
 
@@ -139,7 +139,11 @@ class Action_representation(nn.Module):
                 state_pre = np.concatenate((obs_batch, share_obs_batch), axis = -1)
                 state_after = np.concatenate((next_obs_batch,next_share_obs_batch), axis = -1)
 
-                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4) 
+                print("state_pre",state_pre.shape)
+                print("state_after",state_after.shape)
+
+                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)  
+
                 train_info['vae_total_loss'] += vae_loss
                 train_info['vae_dynamics_predictive_loss'] += recon_loss_d
                 train_info['vae_action_reconstruct_loss'] += recon_loss_c
@@ -152,15 +156,17 @@ class Action_representation(nn.Module):
         return train_info
 
 
-    def unsupervised_loss(self, s1, a_d, a_c, s2, embed_lr): 
 
-        a_d = a_d.to(**self.tpdv)
 
-        s1 = s1.to(**self.tpdv)
-        s2 = s2.to(**self.tpdv)
-        a_c = a_c.to(**self.tpdv)
+    def unsupervised_loss(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr): 
 
-        vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, embed_lr)
+        a_d = torch.tensor(a_d).to(**self.tpdv)
+
+        s1 = torch.tensor(s1).to(**self.tpdv)
+        s2 = torch.tensor(s2).to(**self.tpdv)
+        a_c = torch.tensor(a_c).to(**self.tpdv)
+
+        vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, sup_batch_size, embed_lr)
         return vae_loss, recon_loss_d, recon_loss_c, KL_loss
 
     def train_step(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr=1e-4):
@@ -168,7 +174,8 @@ class Action_representation(nn.Module):
         action_d = a_d
         action_c = a_c
         next_state = s2
-        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state)
+        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state,
+                                                                  sup_batch_size)
 
         #self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=embed_lr)
         self.vae_optimizer.zero_grad()
@@ -177,8 +184,12 @@ class Action_representation(nn.Module):
 
         return vae_loss.cpu().data.numpy(), recon_loss_s.cpu().data.numpy(), recon_loss_c.cpu().data.numpy(), KL_loss.cpu().data.numpy()
 
-    def loss(self, state, action_d, action_c, next_state):
-        
+    def loss(self, state, action_d, action_c, next_state, sup_batch_size):
+        print("input in training vae")
+        print("state",state.shape)
+        print("action_d",action_d.shape)
+        print("action_c",action_c.shape)
+        print("next_state",next_state.shape)
         recon_c, recon_s, mean, std = self.vae(state, action_d, action_c)
 
         recon_loss_s = F.mse_loss(recon_s, next_state, size_average=True) #dynamics predictive
@@ -203,7 +214,8 @@ class Action_representation(nn.Module):
         with torch.no_grad():
             state = torch.FloatTensor(state.reshape(1, -1)).to(**self.tpdv)
             z = torch.FloatTensor(z.reshape(1, -1)).to(**self.tpdv)
-            discrete_action = torch.FloatTensor(discrete_action.reshape(1, -1)).to(**self.tpdv)
+            discrete_action = torch.FloatTensor(discrete_action).reshape(1, -1).to(**self.tpdv)
+
             action_c, state = self.vae.decode(state, z, discrete_action)
         return action_c.cpu().data.numpy().flatten()   
 
@@ -218,7 +230,7 @@ class Action_representation(nn.Module):
     #     action_emb = self.vae.embeddings[action]
     #     action_emb = torch.tanh(action_emb)
     #     return action_emb
-    def pairwise_distances(x, y):
+    def pairwise_distances(self, x, y):
         '''
             Input: x is a Nxd matrix
                 y is a Mxd matirx
@@ -240,27 +252,25 @@ class Action_representation(nn.Module):
         
         return dist
 
-    def get_match_scores(self, action):
-        # compute similarity probability based on L2 norm
-        embeddings = self.vae.embeddings
-        embeddings = torch.tanh(embeddings)
-        action = action.to(**self.tpdv)
-        # compute similarity probability based on L2 norm
-        similarity = - self.pairwise_distances(action, embeddings)  # Negate euclidean to convert diff into similarity score
-        return similarity
-
-        # 获得最优动作，输出于embedding最相近的action 作为最优动作.
 
     def select_discrete_action(self, action):  #discrete action matching
-        similarity = self.get_match_scores(action)
+        embeddings = self.vae.embeddings.to(**self.tpdv)
+        action = torch.tensor(action)
+        if action.dim() == 1:
+            action = action.view(-1,self.discrete_action_dim)
+        action = action.to(**self.tpdv)
+        # compute similarity probability based on L2 norm
+        similarity = - self.pairwise_distances(action, embeddings)
+
         val, pos = torch.max(similarity, dim=1)
-        # print("pos",pos,len(pos))
+        #print("pos",pos,len(pos))
         # if len(pos) == 1:
         #     return pos.cpu().item()  # data.numpy()[0]
         # else:
         #     # print("pos.cpu().item()", pos.cpu().numpy())
         #     return pos.cpu().numpy()
-        return self.vae.embeddings[pos[0]].numpy()
+        
+        return embeddings[pos].cpu().numpy()
 
     def save(self, filename, directory):
         torch.save(self.vae.state_dict(), '%s/%s_vae.pth' % (directory, filename))

@@ -114,7 +114,7 @@ class MultipleCombatEnv(BaseEnv):
             sim.reload(init_states[idx])
         self._tempsims.clear()
 
-    def step(self, share_obs:np.ndarray, action: np.ndarray,action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
+    def step(self, obs:np.ndarray, share_obs:np.ndarray, action: np.ndarray,action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Run one timestep of the environment's dynamics. When end of
         episode is reached, you are responsible for calling `reset()`
         to reset this environment's observation. Accepts an action and
@@ -136,9 +136,15 @@ class MultipleCombatEnv(BaseEnv):
 
         # apply actions
         action = self._unpack(action)
+        continuous_actions={}
+        discrete_actions={}
         for agent_id in self.agents.keys():
-            a_action = self.task.normalize_action(self, agent_id, share_obs, action[agent_id],action_representation)
+            a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,share_obs, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
+            #print("cont_action", cont_action)
+            continuous_actions[agent_id] = cont_action
+            discrete_actions[agent_id] = self.task._shoot_action[agent_id][0]
+            
         # run simulation
         for _ in range(self.agent_interaction_steps):
             for sim in self._jsbsims.values():
@@ -177,7 +183,8 @@ class MultipleCombatEnv(BaseEnv):
             done, info = self.task.get_termination(self, agent_id, info)
             dones[agent_id] = [done]
 
-        return self._pack(obs), self._pack(share_obs), self._pack(rewards), self._pack(dones), info
+        return self._pack(obs), self._pack(share_obs), self._pack(rewards), self._pack(dones),\
+              self._pack(continuous_actions), self._pack(discrete_actions), info
     
     
     def reset_simulators_curriculum(self, angle):

@@ -556,9 +556,11 @@ class Scenario2_Hybrid(HierarchicalMultipleCombatTask, MultipleCombatShootMissil
             """Convert high-level action into low-level action.
             """
             self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])
-            state = np.concateneate(obs,share_obs)
+            state = np.concatenate((obs, np.array(share_obs[0]).flatten()))
+
+
             return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, \
-                                                                   action_representation.select_continuous_action(state,action[:,-4],self._shoot_action).astype(np.float32))#action[:-4].astype(np.int32))type_changed
+                                                                   action_representation.select_continuous_action(state,action[:-4],self._shoot_action[agent_id]).astype(np.float32))#action[:-4].astype(np.int32))type_changed
 
         def reset(self, env):
             self._inner_rnn_states = {agent_id: np.zeros((1, 1, 128)) for agent_id in env.agents.keys()}
@@ -573,10 +575,10 @@ class Scenario2_Hybrid(HierarchicalMultipleCombatTask, MultipleCombatShootMissil
             MultipleCombatShootMissileTask.step(self, env)
             for agent_id, agent in env.agents.items():
                 # [RL-based missile launch with limited condition]            
-                shoot_flag_gun = agent.is_alive and self._shoot_action[agent_id][0] and self.remaining_gun[agent_id] > 0
-                shoot_flag_AIM_9M = agent.is_alive and self._shoot_action[agent_id][1] and self.remaining_missiles_AIM_9M[agent_id] > 0
-                shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
-                shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][3] and self.remaining_chaff_flare[agent_id] > 0
+                shoot_flag_gun = agent.is_alive and self._shoot_action[agent_id][0][0] and self.remaining_gun[agent_id] > 0
+                shoot_flag_AIM_9M = agent.is_alive and self._shoot_action[agent_id][0][1] and self.remaining_missiles_AIM_9M[agent_id] > 0
+                shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][0][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
+                shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][0][3] and self.remaining_chaff_flare[agent_id] > 0
 
                 if shoot_flag_gun :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage gun duration
                     avail, enemy = self.a2a_launch_available(agent)
