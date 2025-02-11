@@ -564,6 +564,41 @@ class SharedHybridReplayBuffer(Buffer):
     def advantages(self) -> np.ndarray:
         advantages = self.returns[:-1] - self.value_preds[:-1]  # type: np.ndarray
         return (advantages - advantages.mean()) / (advantages.std() + 1e-5)
+    
+    def compute_returns(self, next_value: np.ndarray):
+        """
+        Compute returns either as discounted sum of rewards, or using GAE.
+
+        Args:
+            next_value(np.ndarray): value predictions for the step after the last episode step.
+        """
+        if self.use_proper_time_limits:
+            if self.use_gae:
+                self.value_preds[-1] = next_value
+                gae = 0
+                for step in reversed(range(self.rewards.shape[0])):
+                    td_delta = self.rewards[step] + self.gamma * self.value_preds[step + 1] * self.masks[step + 1] - self.value_preds[step]
+                    gae = td_delta + self.gamma * self.gae_lambda * self.masks[step + 1] * gae
+                    gae = gae * self.bad_masks[step + 1]
+                    self.returns[step] = gae + self.value_preds[step]
+            else:
+                self.returns[-1] = next_value
+                for step in reversed(range(self.rewards.shape[0])):
+                    self.returns[step] = (self.returns[step + 1] * self.gamma * self.masks[step + 1] + self.rewards[step]) \
+                        * self.bad_masks[step + 1] + (1 - self.bad_masks[step + 1]) * self.value_preds[step]
+        else:
+            if self.use_gae:
+                self.value_preds[-1] = next_value
+                gae = 0
+                for step in reversed(range(self.rewards.shape[0])):
+                    td_delta = self.rewards[step] + self.gamma * self.value_preds[step + 1] * self.masks[step + 1] - self.value_preds[step]
+                    gae = td_delta + self.gamma * self.gae_lambda * self.masks[step + 1] * gae
+                    self.returns[step] = gae + self.value_preds[step]
+            else:
+                self.returns[-1] = next_value
+                for step in reversed(range(self.rewards.shape[0])):
+                    self.returns[step] = self.returns[step + 1] * self.gamma * self.masks[step + 1] + self.rewards[step]
+
 
     def insert(self,
                obs: np.ndarray,
