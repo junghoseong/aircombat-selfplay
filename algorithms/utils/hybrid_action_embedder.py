@@ -22,6 +22,7 @@ class VAE(nn.Module):
         product = list(itertools.product([0, 1], repeat=discrete_action_dim))
         self.embeddings = torch.tensor(product, dtype=torch.int32)
         # print("self.embeddings", self.embeddings) 
+        #print("state_dim + discrete_action_dim",state_dim + discrete_action_dim)
         self.e0_0 = nn.Linear(state_dim + discrete_action_dim, hidden_size)
         self.e0_1 = nn.Linear(continuous_action_dim, hidden_size)
 
@@ -102,7 +103,9 @@ class Action_representation(nn.Module):
         self.parameter_action_dim = get_shape_from_space(continuous_action_space)[0]
         #self.reduced_action_dim = reduced_action_dim
         self.state_dim = get_shape_from_space(obs_space)[0] + get_shape_from_space(share_obs_space)[0]
+        #print("self.state_dim",self.state_dim)
         self.discrete_action_dim = get_shape_from_space(discrete_action_space)[0]
+        #print("self.discrete_action_dim",self.discrete_action_dim)
         # Action embeddings to project the predicted action into original dimensions
         # latent_dim=action_dim*2+parameter_action_dim*2
         self.latent_dim = get_shape_from_space(continuous_embedding_space)[0]
@@ -139,8 +142,18 @@ class Action_representation(nn.Module):
                 state_pre = np.concatenate((obs_batch, share_obs_batch), axis = -1)
                 state_after = np.concatenate((next_obs_batch,next_share_obs_batch), axis = -1)
 
-                print("state_pre",state_pre.shape)
-                print("state_after",state_after.shape)
+                #print("state_pre",state_pre.shape)
+                #print("state_after",state_after.shape)
+
+                _,_,_,state_pre_shape = state_pre.shape
+                _,_,_,discrete_actions_shape = discrete_actions_batch.shape
+                _,_,_,continuous_actions_shape = continuous_actions_batch.shape
+                _,_,_,state_after_shape = state_after.shape
+
+                state_pre = state_pre.reshape(-1,state_pre_shape)
+                discrete_actions_batch = discrete_actions_batch.reshape(-1,discrete_actions_shape)
+                continuous_actions_batch = continuous_actions_batch.reshape(-1,continuous_actions_shape)
+                state_after = state_after.reshape(-1,state_after_shape)
 
                 vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)  
 
@@ -185,11 +198,11 @@ class Action_representation(nn.Module):
         return vae_loss.cpu().data.numpy(), recon_loss_s.cpu().data.numpy(), recon_loss_c.cpu().data.numpy(), KL_loss.cpu().data.numpy()
 
     def loss(self, state, action_d, action_c, next_state, sup_batch_size):
-        print("input in training vae")
-        print("state",state.shape)
-        print("action_d",action_d.shape)
-        print("action_c",action_c.shape)
-        print("next_state",next_state.shape)
+        # print("input in training vae")
+        # print("state",state.shape)
+        # print("action_d",action_d.shape)
+        # print("action_c",action_c.shape)
+        # print("next_state",next_state.shape)
         recon_c, recon_s, mean, std = self.vae(state, action_d, action_c)
 
         recon_loss_s = F.mse_loss(recon_s, next_state, size_average=True) #dynamics predictive

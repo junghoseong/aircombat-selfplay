@@ -28,6 +28,7 @@ class HybridJSBSimRunner(Runner):
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
         self.mutual_support = self.all_args.mutual_support
+        self.total_num_steps = 0
         
 
         # policy & algorithm
@@ -87,7 +88,7 @@ class HybridJSBSimRunner(Runner):
 
         self.warmup(vae_episodes)
 
-        self.total_num_steps = 0
+        
         episodes = self.num_env_steps // self.buffer_size // self.n_rollout_threads
 
         for episode in range(episodes):
@@ -213,7 +214,7 @@ class HybridJSBSimRunner(Runner):
             self.buffer.after_update()
 
             self.total_num_steps += self.buffer_size * self.n_rollout_threads
-            logging.info("average episode rewards is {}".format(train_infos_action["vae_total_loss"]))
+            logging.info("vae total loss is {}".format(train_infos_action["vae_total_loss"]))
             self.log_info(train_infos_action,self.total_num_steps)
 
 
