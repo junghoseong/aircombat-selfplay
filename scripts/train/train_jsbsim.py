@@ -67,11 +67,16 @@ def make_eval_env(all_args):
             env.seed(all_args.seed * 50000 + rank * 1000)
             return env
         return init_env
-    if all_args.env_name == "MultipleCombat" or all_args.env_name == "MultipleCombat_Hybrid":
+    if all_args.env_name == "MultipleCombat":
         if all_args.n_eval_rollout_threads == 1:
             return ShareDummyVecEnv([get_env_fn(0)])
         else:
             return ShareSubprocVecEnv([get_env_fn(i) for i in range(all_args.n_eval_rollout_threads)])
+    elif all_args.env_name == "MultipleCombat_Hybrid":
+        if all_args.n_eval_rollout_threads == 1:
+            return ShareDummyHybridVecEnv([get_env_fn(0)])
+        else:
+            return ShareSubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_eval_rollout_threads)])
     else:
         if all_args.n_eval_rollout_threads == 1:
             return DummyVecEnv([get_env_fn(0)])
