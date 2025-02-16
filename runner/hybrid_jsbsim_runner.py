@@ -174,7 +174,7 @@ class HybridJSBSimRunner(Runner):
         for episode in range(vae_episodes):
             obs, share_obs = None, None
 
-            for step in range(300):#range(self.buffer_size - 1):
+            for step in range(self.buffer_size - 1):
                 # Sample actions
                 values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
 
