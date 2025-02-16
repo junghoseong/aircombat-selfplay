@@ -89,6 +89,7 @@ class PPOTrainer():
         for _ in range(self.ppo_epoch):
             if self.use_recurrent_policy:
                 data_generator = buffer.recurrent_generator(buffer.advantages, self.num_mini_batch, self.data_chunk_length)
+                #print(buffer.advantages)
             else:
                 raise NotImplementedError
 

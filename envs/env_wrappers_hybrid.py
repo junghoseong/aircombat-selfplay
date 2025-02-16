@@ -382,11 +382,12 @@ class ShareDummyHybridVecEnv(DummyHybridVecEnv, ShareHybridVecEnv):
         self.pre_obss = pre_obss
         self.share_obss = share_obss      
         self.actions = actions
-        self.action_representations = action_representations
+        self.action_representation = action_representations
 
     def step_wait(self):
-        results = [env.step(o,so,a,ar) for (o, so, a, ar, env) in zip(self.pre_obss, self.share_obss, self.actions, self.action_representations, self.envs)]
-        obs, share_obs, rews, dones, infos = map(list, zip(*results))
+        ar = self.action_representation
+        results = [env.step(o,so,a,ar) for (o, so, a, env) in zip(self.pre_obss, self.share_obss, self.actions, self.envs)]
+        obs, share_obs, rews, dones, continuous_actions, discrete_actions, infos = map(list, zip(*results))
         for (i, done) in enumerate(dones):
             if 'bool' in done.__class__.__name__:
                 if done:
@@ -400,7 +401,8 @@ class ShareDummyHybridVecEnv(DummyHybridVecEnv, ShareHybridVecEnv):
             else:
                 raise NotImplementedError("Unexpected type of done!")
         self.actions = None
-        return self._flatten(obs), self._flatten(share_obs), self._flatten(rews), self._flatten(dones), np.array(infos)
+        return self._flatten(obs), self._flatten(share_obs), self._flatten(rews), self._flatten(dones),\
+              self._flatten(continuous_actions),self._flatten(discrete_actions), np.array(infos)
 
     def reset(self):
         results = [env.reset() for env in self.envs]
