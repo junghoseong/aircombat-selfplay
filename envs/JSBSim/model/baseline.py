@@ -137,6 +137,8 @@ class PursueAgent(BaselineAgent):
         ego_x, ego_y, ego_z = env.agents[ego_uid].get_position()
         ego_vx, ego_vy, ego_vz = env.agents[ego_uid].get_velocity()
         enm_x, enm_y, enm_z = env.agents[enm_uid].get_position()
+        # print("ego_uid",ego_uid, ego_z)
+        # print("enm_uid",enm_uid, enm_z)
         # delta altitude
         delta_altitude = enm_z - ego_z
         # delta heading

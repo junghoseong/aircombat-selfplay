@@ -7,7 +7,7 @@ from .multiplecombat_task import MultipleCombatTask, HierarchicalMultipleCombatT
 from ..reward_functions import AltitudeReward, PostureReward, MissilePostureReward, EventDrivenReward, ShootPenaltyReward
 from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B, ChaffSimulator
 from ..utils.utils import LLA2NEU, get_AO_TA_R
-
+import copy
 
 class MultipleCombatDodgeMissileTask(MultipleCombatTask):
     """This task aims at training agent to dodge missile attacking
@@ -258,6 +258,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             ShootPenaltyReward(self.config),
             MissilePostureReward(self.config)
         ]
+        # print("self.use_artillery", self.use_artillery)
 
     def load_observation_space(self):
         return MultipleCombatShootMissileTask.load_observation_space(self)
@@ -277,11 +278,10 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
         """Convert high-level action into low-level action.
         """
         if self.use_baseline and agent_id in env.enm_ids:
-            for idx, agent in enumerate(self.baseline_agent):
-                # print("agent", agent.agent_id)
-                # print("following", idx)
-                action = agent.get_action(env,env.task,idx)
-                action = agent.normalize_action(env, agent_id, action)
+            idx = env.enm_ids.index(agent_id)
+            agent = self.baseline_agent[idx]
+            action = agent.get_action(env,env.task,idx)
+            action = agent.normalize_action(env, agent_id, action)
             self._shoot_action[agent_id] = [0,0,0,0]
             if self.use_artillery:
                 self._shoot_action[agent_id] = [1,1,1,1]
@@ -323,6 +323,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
                     target = self.get_target(agent)
                     self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
                         AIM_120B.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-120B"))
+                    # print(agent_id,"shoot AIM-120")
                     self.remaining_missiles_AIM_120B[agent_id] -= 1
 
             if shoot_flag_AIM_9M and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage middle-range missile duration
@@ -332,6 +333,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
                     target = self.get_target(agent)
                     self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
                         AIM_9M.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-9M"))
+                    # print(agent_id,"shoot AIM-9")
                     self.remaining_missiles_AIM_9M[agent_id] -= 1
             
             if shoot_flag_chaff_flare and (self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # valid condition for chaff: can be bursted after the end of last chaff
@@ -531,31 +533,30 @@ class Scenario2_curriculum(Scenario2):
         #has to check whether both agents are done / success.
         done = False
         success = True
-
         for condition in self.termination_conditions:
             d, s, info = condition.get_termination(self, env, agent_id, info)
+            #print(agent_id, info)
             done = done or d   #if one termination condition is done, it is done
             success = success and s   #all termination condition should mark success.
-            if done:
-                if env.agents[agent_id].color == 'Blue':
-                    if agent_id != self.done_id and self.done_other == False:
-                        self.done_other = True
-                        self.done_id = agent_id
-                        self.info_other = info
-                        if success:
-                            self.success_other = True
-                        else:
-                            self.success_other = False
-                    elif agent_id == self.done_id and self.done_other == True:
-                        continue
+            if done and agent_id in env.ego_ids:
+                if agent_id != self.done_id and self.done_other == False:
+                    self.done_other = True
+                    self.done_id = agent_id
+                    self.info_other = copy.deepcopy(info)
+                    if success:
+                        self.success_other = True
                     else:
-                        if self.success_other or success:
-                            self.record.append(1)
-                        else:
-                            self.record.append(0)
-                        self.winning_rate = sum(self.record)/len(self.record)   
-                        print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
-                        print(self.done_id,self.info_other['done_condition'])
-                        print(agent_id,info['done_condition'])
+                        self.success_other = False
+                elif agent_id == self.done_id and self.done_other == True:
                     break
+                else:
+                    if self.success_other or success:
+                        self.record.append(1)
+                    else:
+                        self.record.append(0)
+                    self.winning_rate = sum(self.record)/len(self.record)   
+                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
+                    print(self.done_id,self.info_other['done_condition'])
+                    print(agent_id,info['done_condition'])
+                break
         return done, info
