@@ -261,13 +261,11 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         """Convert high-level action into low-level action.
         """
         if self.use_baseline and agent_id in env.enm_ids:
-            # self._shoot_action[agent_id] = action[-4:]
             self._shoot_action[agent_id] = [0,0,0,0]
             action = self.baseline_agent.get_action(env, env.task)
             action = self.baseline_agent.normalize_action(env, agent_id, action)
             if self.use_artillery:
                 self._shoot_action[agent_id] = [1,1,1,1]
-            
             return action
         if agent_id in env.ego_ids:
             self._shoot_action[agent_id] = action[-4:]

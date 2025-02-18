@@ -6,6 +6,7 @@ import numpy as np
 import torch
 
 from algorithms.utils.buffer import SharedReplayBuffer
+from envs.JSBSim.model.baseline import PursueAgentfor2, PursueAgentfor4
 from .base_runner import Runner
 
 
@@ -21,6 +22,7 @@ class ShareJSBSimRunner(Runner):
         self.act_space = self.envs.action_space
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
+        # self.use_pursue = self.all_args.use_pursue
         self.mutual_support = self.all_args.mutual_support
 
         # policy & algorithm
@@ -45,7 +47,7 @@ class ShareJSBSimRunner(Runner):
 
         # [Selfplay] allocate memory for opponent policy/data in training
         if self.use_selfplay:
-
+            # if not self.use_pursue:
             from algorithms.utils.selfplay import get_algorithm
             self.selfplay_algo = get_algorithm(self.all_args.selfplay_algorithm)
 
@@ -56,13 +58,27 @@ class ShareJSBSimRunner(Runner):
             self.opponent_policy = [
                 Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
                 for _ in range(self.all_args.n_choose_opponents)]
+            # else:
+            #     if self.num_agents == 4:
+            #         self.opponent_policy = [
+            #             PursueAgentfor2([2,3], self.n_rollout_threads) for _ in range(self.all_args.n_choose_opponents)
+            #         ]
+            #     elif self.num_agents == 8:
+            #         self.opponent_policy = [
+            #             PursueAgentfor4([4,5,6,7], self.n_rollout_threads) for _ in range(self.all_args.n_choose_opponents)
+            #         ]
             self.opponent_env_split = np.array_split(np.arange(self.n_rollout_threads), len(self.opponent_policy))
             self.opponent_obs = np.zeros_like(self.buffer.obs[0])
             self.opponent_rnn_states = np.zeros_like(self.buffer.rnn_states_actor[0])
             self.opponent_masks = np.ones_like(self.buffer.masks[0])
 
-            if self.use_eval:
+            if self.use_eval: #and not self.use_pursue:
                 self.eval_opponent_policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.act_space, device=self.device)
+            # elif self.use_eval and self.use_pursue:
+            #     if self.num_agents == 4:
+            #         self.eval_opponent_policy = PursueAgentfor2([2,3], self.n_eval_rollout_threads)
+            #     elif self.num_agents == 8:
+            #         self.eval_opponent_policy = PursueAgentfor4([4,5,6,7], self.n_eval_rollout_threads)
 
             logging.info("\n Load selfplay opponents: Algo {}, num_opponents {}.\n"
                          .format(self.all_args.selfplay_algorithm, self.all_args.n_choose_opponents))
@@ -170,17 +186,27 @@ class ShareJSBSimRunner(Runner):
         rnn_states_critic = np.array(np.split(_t2n(rnn_states_critic), self.n_rollout_threads))
 
         # [Selfplay] get actions of opponent policy
-        if self.use_selfplay:
+        if self.use_selfplay: #and not self.use_pursue:
             opponent_actions = np.zeros_like(actions)
             for policy_idx, policy in enumerate(self.opponent_policy):
                 env_idx = self.opponent_env_split[policy_idx]
+                #print(self.opponent_obs.shape) #(process, agent, obs_shape)
                 opponent_action, opponent_rnn_states \
                     = policy.act(np.concatenate(self.opponent_obs[env_idx]),
                                  np.concatenate(self.opponent_rnn_states[env_idx]),
                                  np.concatenate(self.opponent_masks[env_idx]))
+                # print(opponent_action.shape) #(process * agent, act_shape)
                 opponent_actions[env_idx] = np.array(np.split(_t2n(opponent_action), len(env_idx)))
+                # print(opponent_actions.shape) #(process, agent, act_shape)
                 self.opponent_rnn_states[env_idx] = np.array(np.split(_t2n(opponent_rnn_states), len(env_idx)))
             actions = np.concatenate((actions, opponent_actions), axis=1)
+        # elif self.use_selfplay and self.use_pursue:
+        #     opponent_actions = np.zeros_like(actions)
+        #     for policy_idx, policy in enumerate(self.opponent_policy):
+        #         env_idx = self.opponent_env_split[policy_idx]
+        #         print(self.opponent_obs[env_idx].shape)
+        #         opponent_action = policy.act(self.opponent_obs[env_idx])
+                
 
         return values, actions, action_log_probs, rnn_states_actor, rnn_states_critic
 

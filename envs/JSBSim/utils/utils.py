@@ -117,6 +117,11 @@ def in_range_rad(angle):
         angle -= 2 * np.pi
     return angle
 
+def in_range_rads(angles):
+    angles = angles % (2 * np.pi)  
+    angles[angles > np.pi] -= 2 * np.pi  
+    return angles
+
 def calculate_coordinates_heading_by_curriculum(center_lat, center_lon, radius_km, angles_deg):
     R = 6371  # 지구 평균 반지름 (km)
     d = radius_km / R  # 구면 거리 (라디안 단위)

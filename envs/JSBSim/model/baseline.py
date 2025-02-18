@@ -8,7 +8,7 @@ import numpy as np
 from typing import Literal
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
-from ..utils.utils import in_range_rad, get_root_dir
+from ..utils.utils import in_range_rad, get_root_dir, in_range_rads
 from .baseline_actor import BaselineActor
 from ..core.catalog import Catalog as c
 
@@ -76,13 +76,64 @@ class BaselineAgent(ABC):
         norm_act[3] = action[3] / 58 + 0.4
         return norm_act       
 
+class PursueAgentfor2:
+    def __init__(self, agent_id,threads) -> None:
+        self.model_path = get_root_dir() + '/model/baseline_model.pt'
+        self.actor1 = BaselineActor()
+        self.actor2 = BaselineActor()
+        self.actor1.load_state_dict(torch.load(self.model_path, map_location=torch.device('cuda')))
+        self.actor1.eval()
+        self.actor2.load_state_dict(torch.load(self.model_path, map_location=torch.device('cuda')))
+        self.actor2.eval()
+        self.agent_id = agent_id
+        self.threads = threads
+        self.reset()
+
+    def reset(self):
+        self.rnn_states1 = np.zeros((self.threads, 1, 128))
+        self.rnn_states2 = np.zeros((self.threads, 1, 128))
+
+    def set_delta_value(self, obs):
+        delta_altitude = obs[:,:,10]
+        delta_heading = in_range_rads(obs[:,:,11] * obs[:,:,14])
+        delta_velocity = obs[:,:,9]
+        return np.stack([delta_altitude,delta_heading,delta_velocity],axis=2)
+
+    def get_observation(self, obs, delta_value):
+        norm_obs = np.zeros([self.threads,2,12])
+        norm_obs[:,:,0:3] = delta_value
+        norm_obs[:,:,3:] = obs[:,:,0:9]
+        #print(norm_obs)
+        print(norm_obs.shape)
+        return norm_obs
+
+
+    def act(self,obs):
+        delta_value = self.set_delta_value(obs)
+        observation = self.get_observation(obs,delta_value)
+        _action1, self.rnn_states1 = self.actor1(observation[:,0,:].reshape(self.threads,12),self.rnn_states1)
+        _action2, self.rnn_states2 = self.actor2(observation[:,1,:].reshape(self.threads,12),self.rnn_states2)
+        print("_action1.shape", _action1.shape)
+        
+
+        
+class PursueAgentfor4:
+    def __init__(self, agent_ids) -> None:
+        assert len(agent_ids) == 2, "agent_ids length is not 2"
+        self.agent1 = PursueAgent(agent_ids[0])
+        self.agent2 = PursueAgent(agent_ids[1])
+        self.agent3 = PursueAgent(agent_ids[2])
+        self.agent4 = PursueAgent(agent_ids[3])
+
 
 class PursueAgent(BaselineAgent):
     def __init__(self, agent_id) -> None:
         super().__init__(agent_id)
+        self.ego_uid = None
 
-    def set_delta_value(self, env, task):
-        ego_uid, enm_uid = list(env.agents.keys())[self.agent_id], list(env.agents.keys())[(self.agent_id+1)%2] 
+    def set_delta_value(self, env, task, enm_id):
+        ego_uid, enm_uid = list(env.agents.keys())[self.agent_id], list(env.agents.keys())[enm_id] 
+        self.ego_uid = ego_uid
         ego_x, ego_y, ego_z = env.agents[ego_uid].get_position()
         ego_vx, ego_vy, ego_vz = env.agents[ego_uid].get_velocity()
         enm_x, enm_y, enm_z = env.agents[enm_uid].get_position()
@@ -100,6 +151,22 @@ class PursueAgent(BaselineAgent):
         delta_velocity = env.agents[enm_uid].get_property_value(c.velocities_u_mps) - \
                          env.agents[ego_uid].get_property_value(c.velocities_u_mps)
         return np.array([delta_altitude, delta_heading, delta_velocity])
+    
+    def get_action(self, env, task,enm_id = 0):
+        delta_value = self.set_delta_value(env, task, enm_id)
+        observation = self.get_observation(env, task, delta_value)
+        _action, self.rnn_states = self.actor(observation, self.rnn_states)
+        action = _action.detach().cpu().numpy().squeeze()
+        return action
+
+class PursueAgent_for_multiple(BaselineAgent):
+    def __init__(self,agent_id) -> None:
+        super().__init__(agent_id)
+
+    def set_delta_value(self, env, task):
+        ego_uid = list(env.agents.keys())[self.agent_id]
+
+
 
 
 class ManeuverAgent(BaselineAgent):

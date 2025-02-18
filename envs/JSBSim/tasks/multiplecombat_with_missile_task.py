@@ -276,7 +276,18 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
     def normalize_action(self, env, agent_id, action):
         """Convert high-level action into low-level action.
         """
-        self._shoot_action[agent_id] = action[-4:]
+        if self.use_baseline and agent_id in env.enm_ids:
+            for idx, agent in enumerate(self.baseline_agent):
+                # print("agent", agent.agent_id)
+                # print("following", idx)
+                action = agent.get_action(env,env.task,idx)
+                action = agent.normalize_action(env, agent_id, action)
+            self._shoot_action[agent_id] = [0,0,0,0]
+            if self.use_artillery:
+                self._shoot_action[agent_id] = [1,1,1,1]
+            return action
+        else:
+            self._shoot_action[agent_id] = action[-4:]
         return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
 
     def reset(self, env):
@@ -496,33 +507,55 @@ class Scenario2_curriculum(Scenario2):
             ShootPenaltyReward(self.config),
             MissilePostureReward(self.config)
         ]
-
+        self.done_other = False
+        self.done_id = None
+        self.success_other = False
+        self.info_other = None
         self.curriculum_angle = 0
         self.winning_rate = 0
         self.record = []
         
     def reset(self, env):
-        if self.winning_rate >= 0.6 and len(self.record) > 20:
+        if self.winning_rate >= 0.8 and len(self.record) > 20:
             self.curriculum_angle += 1
             self.record = []
         env.reset_simulators_curriculum(self.curriculum_angle)
+        self.success_other = False
+        self.done_other = False
+        self.done_id = None
+        self.info_other = None
         Scenario2.reset(self, env)
     
     def get_termination(self, env, agent_id, info={}):
+
+        #has to check whether both agents are done / success.
         done = False
         success = True
+
         for condition in self.termination_conditions:
             d, s, info = condition.get_termination(self, env, agent_id, info)
-            done = done or d
-            success = success and s
+            done = done or d   #if one termination condition is done, it is done
+            success = success and s   #all termination condition should mark success.
             if done:
                 if env.agents[agent_id].color == 'Blue':
-                    print(success, s)
-                    if success:
-                        self.record.append(1)
+                    if agent_id != self.done_id and self.done_other == False:
+                        self.done_other = True
+                        self.done_id = agent_id
+                        self.info_other = info
+                        if success:
+                            self.success_other = True
+                        else:
+                            self.success_other = False
+                    elif agent_id == self.done_id and self.done_other == True:
+                        continue
                     else:
-                        self.record.append(0)
-                    self.winning_rate = sum(self.record)/len(self.record)   
-                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
-                break
+                        if self.success_other or success:
+                            self.record.append(1)
+                        else:
+                            self.record.append(0)
+                        self.winning_rate = sum(self.record)/len(self.record)   
+                        print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
+                        print(self.done_id,self.info_other['done_condition'])
+                        print(agent_id,info['done_condition'])
+                    break
         return done, info

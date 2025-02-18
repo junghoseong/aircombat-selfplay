@@ -17,11 +17,12 @@ class SingleCombatTask(BaseTask):
         super().__init__(config)
         self.use_baseline = getattr(self.config, 'use_baseline', False)
         self.use_artillery = getattr(self.config, 'use_artillery', False)
-        print("use_artillery=",self.use_artillery)
+        # print("use_artillery=",self.use_artillery)
         if self.use_baseline:
             for index, (key, value) in enumerate(self.config.aircraft_configs.items()):
                 if value['color'] == 'Red':
                     agent_id = index
+                    # print(agent_id)
             self.baseline_agent = self.load_agent(self.config.baseline_type, agent_id)
             
 

@@ -10,11 +10,22 @@ from ..reward_functions import AltitudeReward, PostureReward, EventDrivenReward,
 from ..termination_conditions import ExtremeState, LowAltitude, Overload, Timeout, SafeReturn
 from ..utils.utils import get_AO_TA_R, LLA2NEU, get_root_dir
 from ..model.baseline_actor import BaselineActor
+from ..model.baseline import PursueAgent
 
 
 class MultipleCombatTask(SingleCombatTask):
     def __init__(self, config):
         super().__init__(config)
+        self.baseline_agent_load_flag = False
+
+        if self.use_baseline:
+            agent_id = []
+            for index, (key, value) in enumerate(self.config.aircraft_configs.items()):
+                if value['color'] == 'Red':
+                    agent_id.append(index)
+            #print('agent_id', agent_id)
+            self.baseline_agent = self.load_agents(self.config.baseline_type, agent_id)
+            #self.baseline_agent_load_flag = True
 
         self.reward_functions = [
             AltitudeReward(self.config),
@@ -30,6 +41,25 @@ class MultipleCombatTask(SingleCombatTask):
             Timeout(self.config),
         ]
 
+    def load_agents(self, name, agent_ids: list):
+        if name == 'pursue':
+            agents = []
+            for agent_id in agent_ids:
+                agents.append(PursueAgent(agent_id))
+            return agents
+        else:
+            raise NotImplementedError
+        
+    def reset(self,env):
+        self._agent_die_flag = {}
+        if self.use_baseline:
+            #print(self.baseline_agent)
+            for agent in self.baseline_agent:
+                agent.reset()
+        for reward_function in self.reward_functions:
+            reward_function.reset(self, env)
+
+        
     @property
     def num_agents(self) -> int:
         return 4
@@ -113,10 +143,10 @@ class MultipleCombatTask(SingleCombatTask):
         """Convert discrete action index into continuous value.
         """
         norm_act = np.zeros(4)
-        norm_act[0] = action[0] * 2. / (self.action_space.nvec[0] - 1.) - 1.
-        norm_act[1] = action[1] * 2. / (self.action_space.nvec[1] - 1.) - 1.
-        norm_act[2] = action[2] * 2. / (self.action_space.nvec[2] - 1.) - 1.
-        norm_act[3] = action[3] * 0.5 / (self.action_space.nvec[3] - 1.) + 0.4
+        norm_act[0] = action[0] / 20  - 1.
+        norm_act[1] = action[1] / 20 - 1.
+        norm_act[2] = action[2] / 20 - 1.
+        norm_act[3] = action[3] / 58 + 0.4
         return norm_act
 
     def get_reward(self, env, agent_id, info: dict = ...) -> Tuple[float, dict]:
