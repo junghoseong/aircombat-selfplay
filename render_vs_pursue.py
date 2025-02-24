@@ -4,14 +4,15 @@ from envs.JSBSim.envs import SingleCombatEnv, SingleControlEnv, MultipleCombatEn
 from envs.env_wrappers import SubprocVecEnv, DummyVecEnv
 from envs.JSBSim.core.catalog import Catalog as c
 from algorithms.ppo.ppo_actor import PPOActor
+from envs.JSBSim.model.baseline import PursueAgent, ManeuverAgent
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 
 class Args:
-    def __init__(self) -> None:
+    def __init__(self):
         self.gain = 0.01
         self.hidden_size = '128 128'
         self.act_hidden_size = '128 128'
@@ -31,25 +32,24 @@ render = True
 ego_policy_index = 1040
 enm_policy_index = 0
 episode_rewards = 0
-experiment_name = "Scenario1"
+experiment_name = "vspursue_withmissile"
 
-env = SingleCombatEnv("1v1/ShootMissile/scenario1")
+env = SingleCombatEnv("1v1/ShootMissile/scenario1_vs_pursue")
 
 env.seed(10)
 args = Args()
 
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
-enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
-ego_policy.eval()
-enm_policy.eval()
 ego_policy.load_state_dict(torch.load("./checkpoint/actor_latest.pt"))
-enm_policy.load_state_dict(torch.load("./checkpoint/actor_latest.pt"))
+
+enm_policy = PursueAgent(agent_id=1)
 
 for name, param in ego_policy.named_parameters():
     print(f"{name}: requires_grad={param.requires_grad}")
     
 print("Start render")
 obs = env.reset()
+env.reset_simulators_curriculum(90)
 if render:
     env.render(mode='txt', filepath=f'{experiment_name}.txt.acmi')
 ego_rnn_states = np.zeros((1, 1, 128), dtype=np.float32)
@@ -59,12 +59,10 @@ ego_obs =  obs[:num_agents // 2, :]
 enm_rnn_states = np.zeros_like(ego_rnn_states, dtype=np.float32)
 while True:
     ego_actions, _, ego_rnn_states = ego_policy(ego_obs, ego_rnn_states, masks, deterministic=True)
-    # print(ego_actions)
     ego_actions = _t2n(ego_actions)
     ego_rnn_states = _t2n(ego_rnn_states)
-    enm_actions, _, enm_rnn_states = enm_policy(enm_obs, enm_rnn_states, masks, deterministic=True)
-    enm_actions = _t2n(enm_actions)
-    enm_rnn_states = _t2n(enm_rnn_states)
+    enm_actions = enm_policy.get_action(env, env.task)
+    enm_actions = np.pad(enm_actions, (0, 3), 'constant', constant_values=0).reshape(1, -1)
     actions = np.concatenate((ego_actions, enm_actions), axis=0)
     # Obser reward and next obs
     obs, rewards, dones, infos = env.step(actions)

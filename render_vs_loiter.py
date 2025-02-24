@@ -40,7 +40,7 @@ env.seed(10)
 args = Args()
 
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
-ego_policy.load_state_dict(torch.load("./checkpoint/actor_25.pt"))
+ego_policy.load_state_dict(torch.load("./checkpoint/actor_latest.pt"))
 
 enm_policy = ManeuverAgent(agent_id=1, maneuver='triangle')
 
@@ -49,6 +49,9 @@ for name, param in ego_policy.named_parameters():
     
 print("Start render")
 obs = env.reset()
+
+env.reset_simulators_curriculum(180)
+
 if render:
     env.render(mode='txt', filepath=f'{experiment_name}.txt.acmi')
 ego_rnn_states = np.zeros((1, 1, 128), dtype=np.float32)

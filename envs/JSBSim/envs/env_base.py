@@ -141,7 +141,7 @@ class BaseEnv(gymnasium.Env):
                 sim.run()
             for sim in self._tempsims.values():
                 sim.run()
-            for sim in self._chaffsims.values(): # implement chaff
+            for sim in self._chaffsims.values():
                 sim.run()
             for missile in self._tempsims.values():
                 if missile.is_done:

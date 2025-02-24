@@ -68,21 +68,21 @@ class SingleCombatEnv(BaseEnv):
         #     'ic_h_sl_ft': 25000,
         # })
         
-        self.init_states[0].update({
-            'ic_lat_geod_deg': 60.0,
-            'ic_long_gc_deg': 120.0,
-            'ic_h_sl_ft': 20000,
-            'ic_psi_true_deg': 0,
-            'ic_u_fps': 800.0,
-        })
+        # self.init_states[0].update({
+        #     'ic_lat_geod_deg': 60.0,
+        #     'ic_long_gc_deg': 120.0,
+        #     'ic_h_sl_ft': 20000,
+        #     'ic_psi_true_deg': 0,
+        #     'ic_u_fps': 800.0,
+        # })
         
-        self.init_states[1].update({
-            'ic_lat_geod_deg': 60.1,
-            'ic_long_gc_deg': 120.0,
-            'ic_h_sl_ft': 20000,
-            'ic_psi_true_deg': 0,
-            'ic_u_fps': 800.0,
-        })
+        # self.init_states[1].update({
+        #     'ic_lat_geod_deg': 60.1,
+        #     'ic_long_gc_deg': 120.0,
+        #     'ic_h_sl_ft': 20000,
+        #     'ic_psi_true_deg': 0,
+        #     'ic_u_fps': 800.0,
+        # })
                 
         init_states = self.init_states.copy()
         for idx, sim in enumerate(self.agents.values()):

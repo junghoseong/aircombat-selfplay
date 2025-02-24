@@ -13,7 +13,7 @@ acceleration_limit_z: 10.0
 
 # aircraft config
 use_baseline: true
-baseline_type: maneuver
+baseline_type: pursue
 use_artillery: true
 
 aircraft_configs: {
@@ -27,7 +27,7 @@ aircraft_configs: {
       ic_psi_true_deg: 0,
       ic_u_fps: 800.0,
     },
-    missile: 2
+    missile: 4
   },
   B0100: {
     color: Red,
@@ -39,7 +39,7 @@ aircraft_configs: {
       ic_psi_true_deg: 180.0,
       ic_u_fps: 800.0,
     },
-    missile: 2,
+    missile: 4,
   }
 }
 max_attack_angle: 45        # unit: degree

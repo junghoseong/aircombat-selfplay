@@ -184,7 +184,8 @@ class MultipleCombatShootMissileTask(MultipleCombatDodgeMissileTask):
             PostureReward(self.config),
             AltitudeReward(self.config),
             EventDrivenReward(self.config),
-            ShootPenaltyReward(self.config)
+            ShootPenaltyReward(self.config),
+            MissilePostureReward(self.config)
         ]
 
     def load_observation_space(self):
@@ -254,7 +255,8 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             PostureReward(self.config),
             AltitudeReward(self.config),
             EventDrivenReward(self.config),
-            ShootPenaltyReward(self.config)
+            ShootPenaltyReward(self.config),
+            MissilePostureReward(self.config)
         ]
 
     def load_observation_space(self):
@@ -327,6 +329,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
                         new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
+                        self.remaining_chaff_flare[agent_id] -= 1
                         
     def a2a_launch_available(self, agent):
         ret = [False, False, False]
@@ -339,6 +342,8 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
         rad_missile_name_list = ["AIM-120B"]
         
         enemy = self.get_target(agent)
+        if not enemy.is_alive:
+            return ret, enemy
         target = enemy.get_position() - agent.get_position()
         heading = agent.get_velocity()
         distance = np.linalg.norm(target)
@@ -370,7 +375,8 @@ class Scenario3(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             PostureReward(self.config),
             AltitudeReward(self.config),
             EventDrivenReward(self.config),
-            ShootPenaltyReward(self.config)
+            ShootPenaltyReward(self.config),
+            MissilePostureReward(self.config)
         ]
 
     def load_observation_space(self):
@@ -443,6 +449,7 @@ class Scenario3(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
                         new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
+                        self.remaining_chaff_flare[agent_id] -= 1
         
     def a2a_launch_available(self, agent):
         ret = [False, False, False]
@@ -486,7 +493,8 @@ class Scenario2_curriculum(Scenario2):
             PostureReward(self.config),
             AltitudeReward(self.config),
             EventDrivenReward(self.config),
-            ShootPenaltyReward(self.config)
+            ShootPenaltyReward(self.config),
+            MissilePostureReward(self.config)
         ]
 
         self.curriculum_angle = 0
@@ -494,7 +502,7 @@ class Scenario2_curriculum(Scenario2):
         self.record = []
         
     def reset(self, env):
-        if self.winning_rate >= 0.9 and len(self.record) > 20:
+        if self.winning_rate >= 0.6 and len(self.record) > 20:
             self.curriculum_angle += 1
             self.record = []
         env.reset_simulators_curriculum(self.curriculum_angle)

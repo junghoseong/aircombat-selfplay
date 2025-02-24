@@ -447,6 +447,10 @@ class MissileSimulator(BaseSimulator):
         """Missile is already exploded"""
         return self.__status == MissileSimulator.HIT \
             or self.__status == MissileSimulator.MISS
+            
+    @property
+    def is_miss(self):
+        return self.__status == MissileSimulator.MISS
 
     @property
     def Isp(self):

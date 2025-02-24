@@ -8,7 +8,7 @@ from .multiplecombat_task import MultipleCombatTask, HierarchicalMultipleCombatT
 from .singlecombat_with_missile_task import SingleCombatShootMissileTask
 from .multiplecombat_with_missile_task import MultipleCombatShootMissileTask
 from ..reward_functions import AltitudeReward, PostureReward, MissilePostureReward, EventDrivenReward, ShootPenaltyReward
-from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B
+from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B, ChaffSimulator
 from ..utils.utils import LLA2NEU, get_AO_TA_R
 
 class Scenario1_for_KAI(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
@@ -522,60 +522,60 @@ class Scenario3_for_KAI(HierarchicalMultipleCombatTask, MultipleCombatShootMissi
         self.switch_policy = False
         
         init_states = [sim.init_state.copy() for sim in env.agents.values()]
-
+        
         init_states[0].update({
-            'ic_long_gc_deg': 127.87,
-            'ic_lat_geod_deg': 37.03,
-            'ic_psi_true_deg': 180,
-            'ic_h_sl_ft': 20000,
-        })
-        
-        init_states[1].update({
-            'ic_long_gc_deg': 127.88,
-            'ic_lat_geod_deg': 37.03,
-            'ic_psi_true_deg': 180,
-            'ic_h_sl_ft': 20000,
-        })
-        
-        init_states[2].update({
-            'ic_long_gc_deg': 127.89,
-            'ic_lat_geod_deg': 37.03,
-            'ic_psi_true_deg': 180,
-            'ic_h_sl_ft': 20000,
-        })
-        
-        init_states[3].update({
-            'ic_long_gc_deg': 127.90,
-            'ic_lat_geod_deg': 37.03,
-            'ic_psi_true_deg': 180,
-            'ic_h_sl_ft': 20000,
-        })
-        
-        init_states[4].update({
             'ic_long_gc_deg': 125.64,
             'ic_lat_geod_deg': 39.22,
             'ic_psi_true_deg': 0,
             'ic_h_sl_ft': 20000,
         })
         
-        init_states[5].update({
+        init_states[1].update({
             'ic_long_gc_deg': 125.65,
             'ic_lat_geod_deg': 39.22,
             'ic_psi_true_deg': 0,
             'ic_h_sl_ft': 20000,
         })
 
-        init_states[6].update({
+        init_states[2].update({
             'ic_long_gc_deg': 125.66,
             'ic_lat_geod_deg': 39.22,
             'ic_psi_true_deg': 0,
             'ic_h_sl_ft': 20000,
         })
         
-        init_states[7].update({
+        init_states[3].update({
             'ic_long_gc_deg': 125.67,
             'ic_lat_geod_deg': 39.22,
             'ic_psi_true_deg': 0,
+            'ic_h_sl_ft': 20000,
+        })
+        
+        init_states[4].update({
+            'ic_long_gc_deg': 127.87,
+            'ic_lat_geod_deg': 37.03,
+            'ic_psi_true_deg': 180,
+            'ic_h_sl_ft': 20000,
+        })
+        
+        init_states[5].update({
+            'ic_long_gc_deg': 127.88,
+            'ic_lat_geod_deg': 37.03,
+            'ic_psi_true_deg': 180,
+            'ic_h_sl_ft': 20000,
+        })
+        
+        init_states[6].update({
+            'ic_long_gc_deg': 127.89,
+            'ic_lat_geod_deg': 37.03,
+            'ic_psi_true_deg': 180,
+            'ic_h_sl_ft': 20000,
+        })
+        
+        init_states[7].update({
+            'ic_long_gc_deg': 127.90,
+            'ic_lat_geod_deg': 37.03,
+            'ic_psi_true_deg': 180,
             'ic_h_sl_ft': 20000,
         })
         

@@ -6,7 +6,7 @@ exp="v1"
 seed=5
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"
-CUDA_VISIBLE_DEVICES=0 python render/render_jsbsim.py \
+CUDA_VISIBLE_DEVICES=3 python render/render_jsbsim.py \
     --env-name ${env} --algorithm-name ${algo} --scenario-name ${scenario} --experiment-name ${exp} \
     --seed ${seed} --n-training-threads 1 --n-rollout-threads 4 --cuda \
     --log-interval 1 --save-interval 1 \
