@@ -3,7 +3,8 @@ from gymnasium import spaces
 from collections import deque
 
 from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask
-from ..reward_functions import AltitudeReward, PostureReward, MissilePostureReward, EventDrivenReward, ShootPenaltyReward
+from ..reward_functions import AltitudeReward, CombatGeometryReward, EventDrivenReward, GunBEHITReward, GunTargetTailReward, \
+    GunWEZReward, GunWEZDOTReward, PostureReward, RelativeAltitudeReward, HeadingReward, MissilePostureReward, ShootPenaltyReward
 from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B, ChaffSimulator
 from ..utils.utils import LLA2NEU, get_AO_TA_R
 
@@ -367,11 +368,17 @@ class Scenario1_curriculum(Scenario1):
     def __init__(self, config: str):
         Scenario1.__init__(self, config)
         self.reward_functions = [
-            PostureReward(self.config),
             AltitudeReward(self.config),
+            CombatGeometryReward(self.config),
             EventDrivenReward(self.config),
+            GunBEHITReward(self.config),
+            GunTargetTailReward(self.config),
+            GunWEZDOTReward(self.config),
+            GunWEZReward(self.config),
+            PostureReward(self.config),
+            RelativeAltitudeReward(self.config),
+            MissilePostureReward(self.config),
             ShootPenaltyReward(self.config),
-            
         ]
 
         self.curriculum_angle = 0
@@ -399,6 +406,8 @@ class Scenario1_curriculum(Scenario1):
                         self.record.append(1)
                     else:
                         self.record.append(0)
+                    if len(self.record) > 20:
+                        self.record.pop(0)   
                     self.winning_rate = sum(self.record)/len(self.record)   
                     print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
                 break

@@ -3,6 +3,7 @@ from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
 from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3, Scenario2_curriculum
+from ..tasks.multiplecombat_NvsN_task import Scenario2_NvN, Scenario3_NvN
 from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -38,6 +39,10 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario3_for_KAI(self.config)
         elif taskname == 'scenario2_curriculum':
             self.task = Scenario2_curriculum(self.config)
+        elif taskname == 'scenario2_nvn':
+            self.task = Scenario2_NvN(self.config)
+        elif taskname == 'scenario3_nvn':
+            self.task = Scenario3_NvN(self.config)
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 

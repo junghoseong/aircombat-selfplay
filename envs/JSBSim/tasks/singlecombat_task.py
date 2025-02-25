@@ -6,7 +6,8 @@ from .task_base import BaseTask
 from ..core.simulatior import AircraftSimulator
 from ..core.catalog import Catalog as c
 from ..termination_conditions import ExtremeState, LowAltitude, Overload, Timeout, SafeReturn
-from ..reward_functions import AltitudeReward, PostureReward, EventDrivenReward
+from ..reward_functions import AltitudeReward, CombatGeometryReward, EventDrivenReward, GunBEHITReward, GunTargetTailReward, \
+    GunWEZReward, GunWEZDOTReward, PostureReward, RelativeAltitudeReward, HeadingReward, MissilePostureReward, ShootPenaltyReward
 from ..utils.utils import get_AO_TA_R, get2d_AO_TA_R, in_range_rad, LLA2NEU, get_root_dir
 from ..model.baseline_actor import BaselineActor
 from ..model.baseline import BaselineAgent, PursueAgent, ManeuverAgent, StraightFlyAgent, DodgeMissileAgent
@@ -223,6 +224,7 @@ class HierarchicalSingleCombatTask(SingleCombatTask):
         """Convert high-level action into low-level action.
         """
         if self.use_baseline and agent_id in env.enm_ids:
+            action = self.baseline_agent.get_action(env, env.task) # add for debug
             action = self.baseline_agent.normalize_action(env, agent_id, action)
             return action
         else:
@@ -230,7 +232,12 @@ class HierarchicalSingleCombatTask(SingleCombatTask):
             raw_obs = self.get_obs(env, agent_id)
             input_obs = np.zeros(12)
             # (1) delta altitude/heading/velocity
-            input_obs[0] = self.norm_delta_altitude[action[0]]
+            if env.agents[agent_id].get_property_values(self.state_var)[2] < 3500:
+                print("current altitude is {}m".format(np.array(env.agents[agent_id].get_property_values(self.state_var)[2])))
+                input_obs[0] = self.norm_delta_altitude[0]
+            else:            
+                input_obs[0] = self.norm_delta_altitude[action[0]]
+                
             input_obs[1] = self.norm_delta_heading[action[1]]
             input_obs[2] = self.norm_delta_velocity[action[2]]
             # (2) ego info
@@ -253,3 +260,100 @@ class HierarchicalSingleCombatTask(SingleCombatTask):
         """
         self._inner_rnn_states = {agent_id: np.zeros((1, 1, 128)) for agent_id in env.agents.keys()}
         return super().reset(env)
+    
+class Maneuver_curriculum(HierarchicalSingleCombatTask):
+    def __init__(self, config: str):
+        HierarchicalSingleCombatTask.__init__(self, config)
+        self.reward_functions = [
+            AltitudeReward(self.config),
+            CombatGeometryReward(self.config),
+            EventDrivenReward(self.config),
+            GunBEHITReward(self.config),
+            GunTargetTailReward(self.config),
+            GunWEZDOTReward(self.config),
+            GunWEZReward(self.config),
+            PostureReward(self.config),
+            RelativeAltitudeReward(self.config),
+        ]
+
+        self.curriculum_angle = 0
+        self.winning_rate = 0
+        self.record = []
+        
+    def reset(self, env):
+        if self.winning_rate >= 0.9 and len(self.record) > 20:
+            self.curriculum_angle += 1
+            self.record = []
+        env.reset_simulators_curriculum(self.curriculum_angle)
+        HierarchicalSingleCombatTask.reset(self, env)
+    
+    def step(self, env):
+        SingleCombatTask.step(self, env)
+        for agent_id, agent in env.agents.items():
+            avail, enemy = self.a2a_launch_available(agent, agent_id, env)
+            if avail[0]:
+                target = self.get_target(agent)
+                enemy.bloods -= 5
+                print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
+                 
+    def get_termination(self, env, agent_id, info={}):
+        done = False
+        success = True
+        for condition in self.termination_conditions:
+            d, s, info = condition.get_termination(self, env, agent_id, info)
+            done = done or d
+            success = success and s
+            if done:
+                if env.agents[agent_id].color == 'Blue':
+                    print(success, s)
+                    if success:
+                        self.record.append(1)
+                    else:
+                        self.record.append(0)
+                    if len(self.record) > 20:
+                        self.record.pop(0)                    
+                    self.winning_rate = sum(self.record)/len(self.record)   
+                    
+                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
+                break
+        return done, info
+    
+    def a2a_launch_available(self, agent, agent_id, env):
+        ret = [False, False, False]
+        munition_info = {
+            # KM / DEG
+            "GUN": {"dist" : 3, "AO" : 5},
+            "AIM-120B" : {"dist" : 37, "AO" : 90},
+            "AIM-9M" : {"dist" : 7, "AO" : 90},
+        }
+        rad_missile_name_list = ["AIM-120B"]
+        
+        enemy = self.get_target(agent)
+        target = enemy.get_position() - agent.get_position()
+        heading = agent.get_velocity()
+        distance = np.linalg.norm(target)
+        attack_angle = np.rad2deg(np.arccos(np.clip(np.sum(target * heading) / (distance * np.linalg.norm(heading) + 1e-8), -1, 1)))
+
+        if distance / 1000 < munition_info["GUN"]["dist"] and attack_angle < munition_info["GUN"]["AO"]:
+            ret[0] = True 
+        
+        if distance / 1000 < munition_info["AIM-120B"]["dist"] and attack_angle < munition_info["AIM-120B"]["AO"]:
+            ret[1] = True 
+        
+        if distance / 1000 < munition_info["AIM-9M"]["dist"] and attack_angle < munition_info["AIM-9M"]["AO"]:
+            ret[2] = True
+            
+        if self.use_baseline == True and agent_id in env.enm_ids:
+            ret[1] = False
+            if distance / 1000 < munition_info["AIM-120B"]["dist"] and attack_angle < munition_info["AIM-120B"]["AO"]/2:
+                ret[1] = True
+        
+        return ret, enemy
+    
+    def get_target(self, agent):
+        target_distances = []
+        for enemy in agent.enemies:
+            target = enemy.get_position() - agent.get_position()
+            distance = np.linalg.norm(target)
+            target_distances.append(distance)
+        return agent.enemies[np.argmax(target_distances)] 

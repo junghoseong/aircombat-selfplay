@@ -1,9 +1,9 @@
 #!/bin/sh
 
 env="SingleCombat"
-scenario="1v1/ShootMissile/scenario1_vs_pursue"
+scenario="1v1/NoWeapon/Maneuver_vs_pursue"
 algo="ppo"
-exp="turn-circle_curriculum-pursue-debug-rwr"
+exp="turn-circle_curriculum-pursue-only-maneuver"
 seed=1
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"
