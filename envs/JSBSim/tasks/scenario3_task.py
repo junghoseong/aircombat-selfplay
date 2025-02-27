@@ -47,9 +47,11 @@ class Scenario3(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
         """
         if self.use_baseline and agent_id in env.enm_ids:
             #self._shoot_action[agent_id] = action[-4:]
+            idx = env.enm_ids.index(agent_id)
+            agent = self.baseline_agent[idx]
             self._shoot_action[agent_id] = [0, 0, 0, 0]
-            action = self.baseline_agent.get_action(env, env.task)
-            action = self.baseline_agent.normalize_action(env, agent_id, action)
+            action = agent.get_action(env, env.task, idx)
+            action = agent.normalize_action(env, agent_id, action)
             if self.use_artillery:
                 self._shoot_action[agent_id] = [1, 1, 1, 1]
             return action

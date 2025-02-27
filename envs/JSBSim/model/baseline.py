@@ -82,7 +82,7 @@ class PursueAgent(BaselineAgent):
         super().__init__(agent_id)
         self.ego_uid = None
 
-    def set_delta_value(self, env, task):
+    def set_delta_value(self, env, task, enm_id):
         ego_uid, enm_uid = list(env.agents.keys())[self.agent_id], list(env.agents.keys())[enm_id]
         self.ego_uid = ego_uid        
         ego_x, ego_y, ego_z = env.agents[ego_uid].get_position()

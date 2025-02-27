@@ -54,10 +54,10 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario2_RWR(self.config)
         elif taskname == 'scenario3_rwr':
             self.task = Scenario3_RWR(self.config)
+        elif taskname == 'scenario2_rwr_curriculum':
+            self.task = Scenario2_RWR_curriculum(self.config)           
         elif taskname == 'scenario3_rwr_curriculum':
             self.task = Scenario3_RWR_curriculum(self.config)
-        elif taskname == 'scenario3_rwr':
-            self.task = Scenario3_RWR_curriculum(self.config)            
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 

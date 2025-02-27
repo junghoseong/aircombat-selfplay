@@ -34,7 +34,7 @@ class MultipleCombatTask(SingleCombatTask):
             SafeReturn(self.config),
             ExtremeState(self.config),
             Overload(self.config),
-            #LowAltitude(self.config),
+            LowAltitude(self.config),
             Timeout(self.config),
         ]
 

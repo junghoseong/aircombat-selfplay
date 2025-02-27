@@ -18,6 +18,7 @@ def parse_config(filename):
         f'config path {filepath} does not exist. Please pass in a string that represents the file path to the config yaml.'
     with open(filepath, 'r', encoding='utf-8') as f:
         config_data = yaml.load(f, Loader=yaml.FullLoader)
+        print(config_data)
 
     return type('EnvConfig', (object,), config_data)
 
