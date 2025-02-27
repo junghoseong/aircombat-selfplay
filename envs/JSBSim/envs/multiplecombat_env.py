@@ -2,8 +2,9 @@ import numpy as np
 from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
-from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3, Scenario2_curriculum
-from ..tasks.multiplecombat_NvsN_task import Scenario2_NvN, Scenario3_NvN
+from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask
+from ..tasks import Scenario2, Scenario2_curriculum, Scenario2_NvN, Scenario2_NvN_curriculum, Scenario2_RWR, Scenario2_RWR_curriculum
+from ..tasks import Scenario3, Scenario3_curriculum, Scenario3_NvN, Scenario3_NvN_curriculum, Scenario3_RWR, Scenario3_RWR_curriculum
 from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -39,10 +40,24 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario3_for_KAI(self.config)
         elif taskname == 'scenario2_curriculum':
             self.task = Scenario2_curriculum(self.config)
+        elif taskname == 'scenario3_curriculum':
+            self.task = Scenario3_curriculum(self.config)
         elif taskname == 'scenario2_nvn':
             self.task = Scenario2_NvN(self.config)
         elif taskname == 'scenario3_nvn':
             self.task = Scenario3_NvN(self.config)
+        elif taskname == 'scenario2_nvn_curriculum':
+            self.task = Scenario2_NvN_curriculum(self.config)
+        elif taskname == 'scenario3_nvn_curriculum':
+            self.task = Scenario3_NvN_curriculum(self.config)
+        elif taskname == 'scenario2_rwr':
+            self.task = Scenario2_RWR(self.config)
+        elif taskname == 'scenario3_rwr':
+            self.task = Scenario3_RWR(self.config)
+        elif taskname == 'scenario3_rwr_curriculum':
+            self.task = Scenario3_RWR_curriculum(self.config)
+        elif taskname == 'scenario3_rwr':
+            self.task = Scenario3_RWR_curriculum(self.config)            
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 

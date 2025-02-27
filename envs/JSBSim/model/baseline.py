@@ -8,7 +8,7 @@ import numpy as np
 from typing import Literal
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
-from ..utils.utils import in_range_rad, get_root_dir
+from ..utils.utils import in_range_rad, get_root_dir, in_range_rads
 from .baseline_actor import BaselineActor
 from ..core.catalog import Catalog as c
 
@@ -80,9 +80,11 @@ class BaselineAgent(ABC):
 class PursueAgent(BaselineAgent):
     def __init__(self, agent_id) -> None:
         super().__init__(agent_id)
+        self.ego_uid = None
 
     def set_delta_value(self, env, task):
-        ego_uid, enm_uid = list(env.agents.keys())[self.agent_id], list(env.agents.keys())[(self.agent_id+1)%2] 
+        ego_uid, enm_uid = list(env.agents.keys())[self.agent_id], list(env.agents.keys())[enm_id]
+        self.ego_uid = ego_uid        
         ego_x, ego_y, ego_z = env.agents[ego_uid].get_position()
         ego_vx, ego_vy, ego_vz = env.agents[ego_uid].get_velocity()
         enm_x, enm_y, enm_z = env.agents[enm_uid].get_position()
@@ -100,6 +102,13 @@ class PursueAgent(BaselineAgent):
         delta_velocity = env.agents[enm_uid].get_property_value(c.velocities_u_mps) - \
                          env.agents[ego_uid].get_property_value(c.velocities_u_mps)
         return np.array([delta_altitude, delta_heading, delta_velocity])
+    
+    def get_action(self, env, task, enm_id = 0):
+        delta_value = self.set_delta_value(env, task, enm_id)
+        observation = self.get_observation(env, task, delta_value)
+        _action, self.rnn_states = self.actor(observation, self.rnn_states)
+        action = _action.detach().cpu().numpy().squeeze()
+        return action
 
 
 class ManeuverAgent(BaselineAgent):

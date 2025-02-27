@@ -1,9 +1,8 @@
 #!/bin/sh
-
 env="MultipleCombat"
-scenario="2v2/scenario2_nvn"
+scenario="scenario2/scenario2_nvn"
 algo="mappo"
-exp="nvn_scenario2"
+exp="jhs_scenario2_nvn"
 seed=0
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"

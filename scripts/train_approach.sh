@@ -1,6 +1,6 @@
 #!/bin/sh
 env="SingleControl"
-scenario="1/approach"
+scenario="singlecontrol/approach"
 algo="ppo"
 exp="jhs"
 seed=5

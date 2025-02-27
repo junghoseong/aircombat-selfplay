@@ -31,11 +31,10 @@ enm_policy_index = 0
 episode_rewards = 0
 experiment_name = "Scenario3"
 
-env = MultipleCombatEnv("2v2/scenario3_for_KAI")
+env = MultipleCombatEnv("scenario3/scenario3_for_KAI")
 env.seed(0)
 args = Args()
 
-# path = "./scripts/results/MultipleCombat/2v2/scenario2/mappo/v1/wandb/latest-run/files"
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.eval()

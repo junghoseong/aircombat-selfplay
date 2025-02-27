@@ -1,9 +1,8 @@
 #!/bin/sh
-
 env="SingleCombat"
-scenario="1v1/ShootMissile/scenario1_curriculum"
+scenario="scenario1/scenario1_curriculum_vs_pursue"
 algo="ppo"
-exp="curriculum_selfplay"
+exp="jhs_scenario1_curriculum_vs_pursue"
 seed=1
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"
@@ -15,5 +14,4 @@ CUDA_VISIBLE_DEVICES=3 python train/train_jsbsim.py \
     --num-mini-batch 5 --buffer-size 3000 --num-env-steps 1e10 \
     --lr 3e-4 --gamma 0.99 --ppo-epoch 4 --clip-params 0.2 --max-grad-norm 2 --entropy-coef 1e-3 \
     --hidden-size "128 128" --act-hidden-size "128 128" --recurrent-hidden-size 128 --recurrent-hidden-layers 1 --data-chunk-length 60 \
-    --use-prior --use-wandb #--checkpoint True --checkpoint-path "../checkpoint/actor_latest.pt"\
-
+    --use-prior --use-wandb

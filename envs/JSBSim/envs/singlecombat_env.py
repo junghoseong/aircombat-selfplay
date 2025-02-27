@@ -1,7 +1,8 @@
 import numpy as np
 from .env_base import BaseEnv
-from ..tasks import SingleCombatTask, SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, \
-    HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, HierarchicalSingleCombatTask, Scenario1, Scenario1_curriculum, WVRTask, Maneuver_curriculum
+from ..tasks.singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask, Maneuver_curriculum
+from ..tasks.singlecombat_with_missile_task import SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, HierarchicalSingleCombatTask
+from ..tasks import Scenario1, Scenario1_curriculum, Scenario1_RWR, Scenario1_RWR_curriculum, WVRTask
 from ..tasks.KAI_project_task import Scenario1_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -17,24 +18,16 @@ class SingleCombatEnv(BaseEnv):
 
     def load_task(self):
         taskname = getattr(self.config, 'task', None)
-        if taskname == 'singlecombat':
-            self.task = SingleCombatTask(self.config)
-        elif taskname == 'hierarchical_singlecombat':
-            self.task = HierarchicalSingleCombatTask(self.config)
-        elif taskname == 'singlecombat_dodge_missile':
-            self.task = SingleCombatDodgeMissileTask(self.config)
-        elif taskname == 'singlecombat_shoot':
-            self.task = SingleCombatShootMissileTask(self.config)
-        elif taskname == 'hierarchical_singlecombat_dodge_missile':
-            self.task = HierarchicalSingleCombatDodgeMissileTask(self.config)
-        elif taskname == 'hierarchical_singlecombat_shoot':
-            self.task = HierarchicalSingleCombatShootTask(self.config)
-        elif taskname == "scenario1":
+        if taskname == "scenario1":
             self.task = Scenario1(self.config)        
         elif taskname == "scenario1_for_KAI":
             self.task = Scenario1_for_KAI(self.config) 
         elif taskname == "scenario1_curriculum":
-            self.task = Scenario1_curriculum(self.config)     
+            self.task = Scenario1_curriculum(self.config)
+        elif taskname == "scenario1_rwr":
+            self.task = Scenario1_RWR(self.config)
+        elif taskname == "scenario1_rwr_curriculum":
+            self.task = Scenario1_RWR_curriculum(self.config)
         elif taskname == "wvr":
             self.task = WVRTask(self.config)     
         elif taskname == "maneuver_curriculum":
