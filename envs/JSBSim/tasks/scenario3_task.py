@@ -55,6 +55,8 @@ class Scenario3(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             if self.use_artillery:
                 self._shoot_action[agent_id] = [1, 1, 1, 1]
             return action
+        elif agent_id in env.enm_ids:
+            self._shoot_action[agent_id] = action[-4:]
         if agent_id in env.ego_ids:
             self._shoot_action[agent_id] = action[-4:] # ADD, check for enm ids!
         return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))

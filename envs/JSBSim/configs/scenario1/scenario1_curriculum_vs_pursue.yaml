@@ -14,7 +14,7 @@ acceleration_limit_z: 10.0
 # aircraft config
 use_baseline: true
 baseline_type: pursue
-use_artillery: true
+use_artillery: false
 
 aircraft_configs: {
   A0100: {

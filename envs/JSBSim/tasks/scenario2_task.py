@@ -55,6 +55,8 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
             if self.use_artillery:
                 self._shoot_action[agent_id] = [1, 1, 1, 1]
             return action
+        elif agent_id in env.enm_ids:
+            self._shoot_action[agent_id] = action[-4:]
         if agent_id in env.ego_ids:
             self._shoot_action[agent_id] = action[-4:] # ADD, check for enm ids!
         return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, action[:-4].astype(np.int32))
@@ -71,7 +73,7 @@ class Scenario2(HierarchicalMultipleCombatTask, MultipleCombatShootMissileTask):
     def step(self, env):
         MultipleCombatShootMissileTask.step(self, env)
         for agent_id, agent in env.agents.items():
-            # [RL-based missile launch with limited condition]            
+            # [RL-based missile launch with limited condition]
             shoot_flag_gun = agent.is_alive and self._shoot_action[agent_id][0] and self.remaining_gun[agent_id] > 0
             shoot_flag_AIM_9M = agent.is_alive and self._shoot_action[agent_id][1] and self.remaining_missiles_AIM_9M[agent_id] > 0
             shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
