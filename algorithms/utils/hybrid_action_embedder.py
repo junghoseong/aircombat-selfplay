@@ -104,7 +104,7 @@ class Action_representation(nn.Module):
         self.parameter_action_dim = get_shape_from_space(continuous_action_space)[0]
         #self.reduced_action_dim = reduced_action_dim
         self.state_dim = get_shape_from_space(obs_space)[0] + rnn_actor_space.shape[1]
-        #print("self.state_dim",self.state_dim)
+        print("self.state_dim",self.state_dim)
         self.discrete_action_dim = get_shape_from_space(discrete_action_space)[0]
         #print("self.discrete_action_dim",self.discrete_action_dim)
         # Action embeddings to project the predicted action into original dimensions
@@ -125,7 +125,7 @@ class Action_representation(nn.Module):
 
     #     return emb
 
-    def train(self, buffer:SharedHybridReplayBuffer):
+    def train(self, buffer):
         train_info = {}
         train_info['vae_total_loss'] = 0
         train_info['vae_dynamics_predictive_loss'] = 0
@@ -137,9 +137,12 @@ class Action_representation(nn.Module):
 
             # For each chunk of the sequence data
             for sample in data_generator:
-                obs_batch, next_obs_batch, share_obs_batch, next_share_obs_batch, discrete_actions_batch, continuous_actions_batch,\
+                if isinstance(buffer,SharedHybridReplayBuffer):
+                    obs_batch, next_obs_batch, share_obs_batch, next_share_obs_batch, discrete_actions_batch, continuous_actions_batch,\
                       actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch, next_rnn_states_actor_batch= sample
-                
+                else:
+                    obs_batch, next_obs_batch, discrete_actions_batch, continuous_actions_batch,\
+                      actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch, next_rnn_states_actor_batch= sample
                 state_pre = np.concatenate((obs_batch, rnn_states_actor_batch), axis = -1)
                 state_after = np.concatenate((next_obs_batch,next_rnn_states_actor_batch), axis = -1)
 
@@ -227,6 +230,8 @@ class Action_representation(nn.Module):
         """
         with torch.no_grad():
             state = torch.FloatTensor(state.reshape(1, -1)).to(**self.tpdv)
+            if z == []:
+                raise ValueError("z should not be empty")
             z = torch.FloatTensor(z.reshape(1, -1)).to(**self.tpdv)
             discrete_action = torch.FloatTensor(discrete_action).reshape(1, -1).to(**self.tpdv)
 

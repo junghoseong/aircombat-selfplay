@@ -4,8 +4,8 @@ from collections import deque
 import copy
 
 from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask
-from .multiplecombat_task import MultipleCombatTask, HierarchicalMultipleCombatTask
-from .multiplecombat_with_missile_task import MultipleCombatShootMissileTask
+from .multiplecombat_task import MultipleCombatTask, HierarchicalMultipleCombatTask 
+from .multiplecombat_with_missile_task import MultipleCombatShootMissileTask, HierarchialHybridMultipleCombatTask
 from ..reward_functions import AltitudeReward, CombatGeometryReward, EventDrivenReward, GunBEHITReward, GunTargetTailReward, \
     GunWEZReward, GunWEZDOTReward, PostureReward, RelativeAltitudeReward, HeadingReward, MissilePostureReward, ShootPenaltyReward
 from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B, ChaffSimulator
@@ -542,7 +542,7 @@ class Scenario2_RWR_curriculum(Scenario2_RWR):
                 break
         return done, info
     
-class Scenario2_Hybrid(Scenario2_NvN):
+class Scenario2_Hybrid(Scenario2_NvN, HierarchialHybridMultipleCombatTask):
     def __init__(self, config: str):
         Scenario2_NvN.__init__(self, config)
         self.reward_functions = [
@@ -561,30 +561,13 @@ class Scenario2_Hybrid(Scenario2_NvN):
     
     
     def load_action_space(self):
-        # altitude control[-0.1,0.1] + heading control[-pi/6,pi/6] + velocity control[-0.05,0.05] + shoot control
-        #self.action_space = spaces.Tuple([spaces.MultiDiscrete([3, 5, 3]), spaces.MultiDiscrete([2, 2, 2, 2])])
-        self.action_space = spaces.Box(low = np.array([-1,-1,-1,-1,-1,-1,-0.5,-0.5,-0.5,-0.5]), \
-                                        high = np.array([1,1,1,1,1,1,1.5,1.5,1.5,1.5]),\
-                                        dtype = np.float64)    #Front 6 -> continuous embedding, Back 4 -> discrete actions
-        self.discrete_action_space = spaces.MultiDiscrete([2,2,2,2])
-        self.continuous_action_space = spaces.Box(low = np.array([-0.1,-np.pi/6,-0.05]),high = np.array([0.1,np.pi/6,0.05]),dtype = np.float64)
-        self.discrete_embedding_space = spaces.MultiDiscrete([2,2,2,2])
-        self.continuous_embedding_space = spaces.Box(low = -np.ones(6), high = np.ones(6),dtype = np.float64)
-        self.rnn_actor_space = np.zeros((1,128))
+        return HierarchialHybridMultipleCombatTask.load_action_space(self)
 
     def normalize_action(self, env, agent_id, obs, rnn_states, action, action_representation): #must make actionrepresentation to come here
         """Convert high-level action into low-level action.
         """
-        self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])
-        state = np.concatenate((obs, np.array(rnn_states[list(env.agents.keys()).index(agent_id)]).flatten()))
-        
-        #must be np.concatenate((obs, rnn_states[agent_id]))
-
-
-        return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, \
-                                                                action_representation.select_continuous_action(state,action[:-4],self._shoot_action[agent_id]).astype(np.float32))#action[:-4].astype(np.int32))type_changed
-
-    def step(self, env):
+        return HierarchialHybridMultipleCombatTask.normalize_action(self, env, agent_id, obs, rnn_states, action, action_representation)
+    def step(self, env):   # restrictions unapplied
         MultipleCombatShootMissileTask.step(self, env)
         for agent_id, agent in env.agents.items():
             # [RL-based missile launch with limited condition]            
@@ -594,7 +577,7 @@ class Scenario2_Hybrid(Scenario2_NvN):
             shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][0][3] and self.remaining_chaff_flare[agent_id] > 0
 
             if shoot_flag_gun :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage gun duration
-                avail, enemy = self.a2a_launch_available(agent)
+                avail, enemy = self.a2a_launch_available(agent,agent_id,env)
                 if avail[0]:
                     target = self.get_target(agent)
                     enemy.bloods -= 5
@@ -602,7 +585,7 @@ class Scenario2_Hybrid(Scenario2_NvN):
                     self.remaining_gun[agent_id] -= 1
             
             if shoot_flag_AIM_120B :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage long-range missile duration
-                avail, _ = self.a2a_launch_available(agent)
+                avail, _ = self.a2a_launch_available(agent,agent_id,env)
                 if avail[1]:
                     new_missile_uid = agent_id + str(self.remaining_missiles_AIM_120B[agent_id])
                     target = self.get_target(agent)
@@ -611,7 +594,7 @@ class Scenario2_Hybrid(Scenario2_NvN):
                     self.remaining_missiles_AIM_120B[agent_id] -= 1
 
             if shoot_flag_AIM_9M :#and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage middle-range missile duration
-                avail, _ = self.a2a_launch_available(agent)
+                avail, _ = self.a2a_launch_available(agent,agent_id,env)
                 if avail[2]:
                     new_missile_uid = agent_id + str(self.remaining_missiles_AIM_9M[agent_id])
                     target = self.get_target(agent)
@@ -626,38 +609,64 @@ class Scenario2_Hybrid(Scenario2_NvN):
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
                         self.remaining_chaff_flare[agent_id] -= 1
-                        
-    def a2a_launch_available(self, agent):
-        ret = [False, False, False]
-        munition_info = {
-            # KM / DEG
-            "GUN": {"dist" : 3, "AO" : 5},
-            "AIM-120B" : {"dist" : 37, "AO" : 90},
-            "AIM-9M" : {"dist" : 7, "AO" : 90},
-        }
-        rad_missile_name_list = ["AIM-120B"]
+                    
+
+
+class Scenario2_Hybrid_curriculum(Scenario2_Hybrid,Scenario2_NvN_curriculum):
+    def __init__(self, config: str):
+        Scenario2_Hybrid.__init__(self, config)
+        Scenario2_NvN_curriculum.__init__(self, config)
+        self.reward_functions = [
+            PostureReward(self.config),
+            AltitudeReward(self.config),
+            EventDrivenReward(self.config),
+            ShootPenaltyReward(self.config)
+        ]
+
+        self.done_other = False
+        self.done_id = None
+        self.success_other = False
+        self.info_other = None
+        self.curriculum_angle = 0
+        self.winning_rate = 0
+        self.record = []
         
-        enemy = self.get_target(agent)
-        target = enemy.get_position() - agent.get_position()
-        heading = agent.get_velocity()
-        distance = np.linalg.norm(target)
-        attack_angle = np.rad2deg(np.arccos(np.clip(np.sum(target * heading) / (distance * np.linalg.norm(heading) + 1e-8), -1, 1)))
-        
-        if distance / 1000 < munition_info["GUN"]["dist"] and attack_angle < munition_info["GUN"]["AO"]:
-            ret[0] = True 
-        
-        if distance / 1000 < munition_info["AIM-120B"]["dist"] and attack_angle < munition_info["AIM-120B"]["AO"]:
-            ret[1] = True 
-        
-        if distance / 1000 < munition_info["AIM-9M"]["dist"] and attack_angle < munition_info["AIM-9M"]["AO"]:
-            ret[2] = True
-        
-        return ret, enemy
-        
-    def get_target(self, agent):
-        target_distances = []
-        for enemy in agent.enemies:
-            target = enemy.get_position() - agent.get_position()
-            distance = np.linalg.norm(target)
-            target_distances.append(distance)
-        return agent.enemies[np.argmax(target_distances)]
+    def reset(self, env):
+        if self.winning_rate >= 0.6 and len(self.record) > 20:
+            self.curriculum_angle += 1
+            self.record = []
+        env.reset_simulators_curriculum(self.curriculum_angle)
+        self.success_other = False
+        self.done_other = False
+        self.done_id = None
+        self.info_other = None
+        Scenario2_Hybrid.reset(self, env)
+    
+    def get_termination(self, env, agent_id, info={}):
+        # has to check whether both agents are done / success.
+        done = False
+        success = True
+        for condition in self.termination_conditions:
+            d, s, info = condition.get_termination(self, env, agent_id, info)
+            done = done or d # if one termination condition is done, it is done
+            success = success and s # all termination condition should mark success
+            if done and agent_id in env.ego_ids:
+                if agent_id != self.done_id and self.done_other == False:
+                    self.done_other = True
+                    self.done_id = agent_id
+                    self.info_other = copy.deepcopy(info)
+                    if success:
+                        self.success_other = True
+                    else:
+                        self.success_other = False
+                elif agent_id == self.done_id and self.done_other == True:
+                    break
+                else:
+                    if self.success_other or success:
+                        self.record.append(1)
+                    else:
+                        self.record.append(0)
+                    if len(self.record) > 20:
+                        self.record.pop(0) 
+                    self.winning_rate = sum(self.record)/len(self.record)
+                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))

@@ -14,10 +14,11 @@ import setproctitle
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 from config import get_config
 from runner.share_jsbsim_runner import ShareJSBSimRunner
+from runner.share_hybrid_jsbsim_runner import ShareHybridJSBSimRunner
 from runner.hybrid_jsbsim_runner import HybridJSBSimRunner
-from envs.JSBSim.envs import SingleCombatEnv, SingleControlEnv, MultipleCombatEnv
+from envs.JSBSim.envs import SingleCombatEnv, SingleControlEnv, MultipleCombatEnv, HybridSingleCombatEnv
 from envs.env_wrappers import SubprocVecEnv, DummyVecEnv, ShareSubprocVecEnv, ShareDummyVecEnv
-from envs.env_wrappers_hybrid import ShareSubprocHybridVecEnv, ShareDummyHybridVecEnv
+from envs.env_wrappers_hybrid import ShareSubprocHybridVecEnv, ShareDummyHybridVecEnv,DummyHybridVecEnv,SubprocHybridVecEnv
 
 
 def make_train_env(all_args):
@@ -27,6 +28,8 @@ def make_train_env(all_args):
                 env = SingleCombatEnv(all_args.scenario_name)
             elif all_args.env_name == "SingleControl":
                 env = SingleControlEnv(all_args.scenario_name)
+            elif all_args.env_name == "SingleCombat_Hybrid":
+                env = HybridSingleCombatEnv(all_args.scenario_name)
             elif all_args.env_name == "MultipleCombat" or all_args.env_name == "MultipleCombat_Hybrid":
                 env = MultipleCombatEnv(all_args.scenario_name)
             else:
@@ -45,6 +48,11 @@ def make_train_env(all_args):
             return ShareDummyHybridVecEnv([get_env_fn(0)])
         else:
             return ShareSubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_rollout_threads)])
+    elif all_args.env_name == "SingleCombat_Hybrid":
+        if all_args.n_rollout_threads == 1:
+            return DummyHybridVecEnv([get_env_fn(0)])
+        else:
+            return SubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_eval_rollout_threads)])
     else:
         if all_args.n_rollout_threads == 1:
             return DummyVecEnv([get_env_fn(0)])
@@ -59,6 +67,8 @@ def make_eval_env(all_args):
                 env = SingleCombatEnv(all_args.scenario_name)
             elif all_args.env_name == "SingleControl":
                 env = SingleControlEnv(all_args.scenario_name)
+            elif all_args.env_name == "SingleCombat_Hybrid":
+                env = HybridSingleCombatEnv(all_args.scenario_name)
             elif all_args.env_name == "MultipleCombat" or all_args.env_name == "MultipleCombat_Hybrid":
                 env = MultipleCombatEnv(all_args.scenario_name)
             else:
@@ -77,6 +87,11 @@ def make_eval_env(all_args):
             return ShareDummyHybridVecEnv([get_env_fn(0)])
         else:
             return ShareSubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_eval_rollout_threads)])
+    elif all_args.env_name == "SingleCombat_Hybrid":
+        if all_args.n_eval_rollout_threads == 1:
+            return DummyHybridVecEnv([get_env_fn(0)])
+        else:
+            return SubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_eval_rollout_threads)])
     else:
         if all_args.n_eval_rollout_threads == 1:
             return DummyVecEnv([get_env_fn(0)])
@@ -164,6 +179,8 @@ def main(args):
     if all_args.env_name == "MultipleCombat":
         runner = ShareJSBSimRunner(config)
     elif all_args.env_name == "MultipleCombat_Hybrid":
+        runner = ShareHybridJSBSimRunner(config)
+    elif all_args.env_name == "SingleCombat_Hybrid":
         runner = HybridJSBSimRunner(config)
     else:
         if all_args.use_selfplay:

@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import gymnasium as gym
 
-from algorithms.utils.buffer import HybridReplayBuffer
+from algorithms.utils.buffer import SharedHybridReplayBuffer
 from .base_runner import Runner
 from algorithms.utils.hybrid_action_embedder import Action_representation
 
@@ -15,10 +15,11 @@ def _t2n(x):
     return x.detach().cpu().numpy()
 
 
-class HybridJSBSimRunner(Runner):
+class ShareHybridJSBSimRunner(Runner):
 
     def load(self):
         self.obs_space = self.envs.observation_space
+        self.share_obs_space = self.envs.share_observation_space
         self.all_continuous_act_space = self.envs.action_space
         self.discrete_action_space = self.envs.discrete_action_space
         self.continuous_action_space = self.envs.continuous_action_space
@@ -28,25 +29,31 @@ class HybridJSBSimRunner(Runner):
 
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
+        self.mutual_support = self.all_args.mutual_support
         self.total_num_steps = 0
         
 
         # policy & algorithm
-        if self.algorithm_name == "ppo":
-            from algorithms.ppo_hybrid.ppo_trainer import PPOTrainer as Trainer
-            from algorithms.ppo_hybrid.ppo_policy import PPOPolicy as Policy
+        if self.algorithm_name == "mappo":
+            from algorithms.mappo_hybrid.ppo_trainer import PPOTrainer as Trainer
+            from algorithms.mappo_hybrid.ppo_policy import PPOPolicy as Policy
         else:
             raise NotImplementedError
-        self.policy = Policy(self.all_args, self.obs_space, self.all_continuous_act_space, device=self.device)
+        self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
         self.action_representation = Action_representation(self.all_args,self.obs_space,self.rnn_actor_space,self.discrete_action_space,self.continuous_action_space, self.continuous_embedding_space, device = self.device)
+        
+        if self.mutual_support: #MI can be stimulated in the latent space?
+            from algorithms.utils.discriminator import Discriminator
+            self.disc = Discriminator(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
+            self.intrinsic_ratio = self.all_args.intrinsic_ratio
 
         # buffer
         if self.use_selfplay:
-            self.buffer = HybridReplayBuffer(self.all_args, self.num_agents // 2, self.obs_space, \
+            self.buffer = SharedHybridReplayBuffer(self.all_args, self.num_agents // 2, self.obs_space, self.share_obs_space, \
                                                    self.discrete_action_space,self.continuous_action_space,self.all_continuous_act_space,self.discrete_embedding_space,self.continuous_embedding_space)
         else:
-            self.buffer = HybridReplayBuffer(self.all_args, self.num_agents, self.obs_space, \
+            self.buffer = SharedHybridReplayBuffer(self.all_args, self.num_agents, self.obs_space, self.share_obs_space, \
                                                    self.discrete_action_space,self.continuous_action_space,self.all_continuous_act_space,self.discrete_embedding_space,self.continuous_embedding_space)
 
         # [Selfplay] allocate memory for opponent policy/data in training
@@ -60,7 +67,7 @@ class HybridJSBSimRunner(Runner):
                 .format(self.all_args.n_choose_opponents, self.n_rollout_threads)
             self.policy_pool = {'latest': self.all_args.init_elo}  # type: dict[str, float]
             self.opponent_policy = [
-                Policy(self.all_args, self.obs_space, self.all_continuous_act_space, device=self.device)
+                Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
                 for _ in range(self.all_args.n_choose_opponents)]
             self.opponent_env_split = np.array_split(np.arange(self.n_rollout_threads), len(self.opponent_policy))
             self.opponent_obs = np.zeros_like(self.buffer.obs[0])
@@ -68,7 +75,7 @@ class HybridJSBSimRunner(Runner):
             self.opponent_masks = np.ones_like(self.buffer.masks[0])
 
             if self.use_eval:
-                self.eval_opponent_policy = Policy(self.all_args, self.obs_space, self.all_continuous_act_space, device=self.device)
+                self.eval_opponent_policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
 
             logging.info("\n Load selfplay opponents: Algo {}, num_opponents {}.\n"
                          .format(self.all_args.selfplay_algorithm, self.all_args.n_choose_opponents))
@@ -88,7 +95,7 @@ class HybridJSBSimRunner(Runner):
 
         for episode in range(episodes):
             
-            obs= None
+            obs, share_obs = None, None
 
             for step in range(self.buffer_size - 1):
                 # Sample actions
@@ -96,26 +103,34 @@ class HybridJSBSimRunner(Runner):
                 
 
                 # Initialize the state if it is the first step
-                if obs is None:
-                    obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,self.action_representation)
+                if obs is None and share_obs is None:
+                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,self.action_representation) #action is processed in 'tasks'
+                next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation) #action is processed in 'tasks'
+                
+                if self.mutual_support:
+                    # Compute intrinsic rewards based on the current state
+                    int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
+                    rewards += int_rewards * self.intrinsic_ratio
                 
                 discrete_embeddings = actions[:,:,-4:]
                 continuous_embeddings = actions[:,:,:-4]
                 all_continuous_actions = actions
                 # insert data into buffer
-                data = obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
+                data = obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
                     , rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
                 self.insert(data)
                 
                 # Update the state for the next step
-                obs = next_obs
+                obs, share_obs = next_obs, next_share_obs
 
             # compute return and update network
             self.compute()
-            train_infos, train_infos_action = self.train()
+            if self.mutual_support:
+                train_infos, train_infos_disc, train_infos_action= self.train()
+            else:
+                train_infos, train_infos_action = self.train()
 
             # post process
             self.total_num_steps += self.buffer_size * self.n_rollout_threads
@@ -140,6 +155,8 @@ class HybridJSBSimRunner(Runner):
                 train_infos["average_episode_rewards"] = self.buffer.rewards.sum() / (self.buffer.masks == False).sum()
                 logging.info("average episode rewards is {}".format(train_infos["average_episode_rewards"]))
                 self.log_info(train_infos, self.total_num_steps)
+                if self.mutual_support:
+                    self.log_info(train_infos_disc, self.total_num_steps)
                 self.log_info(train_infos_action,self.total_num_steps)
 
             # eval
@@ -148,15 +165,17 @@ class HybridJSBSimRunner(Runner):
 
     def warmup(self,vae_episodes):
         # reset env
-        obs = self.envs.reset()
+        obs, share_obs = self.envs.reset()
         # [Selfplay] divide ego/opponent of initial obs
         if self.use_selfplay:
             self.opponent_obs = obs[:, self.num_agents // 2:, ...]
             obs = obs[:, :self.num_agents // 2, ...]
+            share_obs = share_obs[:, :self.num_agents // 2, ...]
         self.buffer.step = 0
         self.buffer.obs[0] = obs.copy()
+        self.buffer.share_obs[0] = share_obs.copy()
         for episode in range(vae_episodes):
-            obs = None
+            obs, share_obs = None, None
 
             for step in range(self.buffer_size - 1):
                 # Sample actions
@@ -164,24 +183,34 @@ class HybridJSBSimRunner(Runner):
                 #print("rnn_states_actor",rnn_states_actor.shape)
 
                 # Initialize the state if it is the first step
-                if obs is None:
-                    obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,rnn_states_actor, self.action_representation)
+                if obs is None and share_obs is None:
+                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,rnn_states_actor, self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,rnn_states_actor, self.action_representation)
+                next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,rnn_states_actor, self.action_representation)
                 
+                if self.mutual_support:
+                    # Compute intrinsic rewards based on the current state, full parameters
+                    int_rewards = self.disc.compute_intrinsic_reward(obs, next_obs, actions, rewards, dones, rnn_states_actor)
+                    rewards += int_rewards * self.intrinsic_ratio
                 #actions in [N->thread,M->agent,shape]
                 discrete_embeddings = actions[:,:,-4:]
                 continuous_embeddings = actions[:,:,:-4]
                 all_continuous_actions = actions
+                # print("obs_shape",obs.shape)
+                # print("discrete_actions_shape",discrete_actions.shape)
+                # print("continuous_action_shape",continuous_actions.shape)
+                # print("all shape",all_continuous_actions.shape)
+                # print("dis_emb_shape",discrete_embeddings.shape)
+                # print("con_emb_shape",continuous_embeddings.shape)
 
                 # insert data into buffer
-                data = obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
+                data = obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
                     , rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
                 self.insert(data)
                 
                 # Update the state for the next step
-                obs = next_obs
+                obs, share_obs = next_obs, next_share_obs
 
             # compute return and update network
 
@@ -198,7 +227,8 @@ class HybridJSBSimRunner(Runner):
     def collect(self, step):
         self.policy.prep_rollout()
         values, actions, action_log_probs, rnn_states_actor, rnn_states_critic \
-            = self.policy.get_actions(np.concatenate(self.buffer.obs[step]),
+            = self.policy.get_actions(np.concatenate(self.buffer.share_obs[step]),
+                                      np.concatenate(self.buffer.obs[step]),
                                       np.concatenate(self.buffer.rnn_states_actor[step]),
                                       np.concatenate(self.buffer.rnn_states_critic[step]),
                                       np.concatenate(self.buffer.masks[step]))
@@ -227,14 +257,14 @@ class HybridJSBSimRunner(Runner):
     @torch.no_grad()
     def compute(self):
         self.policy.prep_rollout()
-        next_values = self.policy.get_values(np.concatenate(self.buffer.obs[-1]),
+        next_values = self.policy.get_values(np.concatenate(self.buffer.share_obs[-1]),
                                              np.concatenate(self.buffer.rnn_states_critic[-1]),
                                              np.concatenate(self.buffer.masks[-1]))
         next_values = np.array(np.split(_t2n(next_values), self.buffer.n_rollout_threads))
         self.buffer.compute_returns(next_values)
 
     def insert(self, data: List[np.ndarray]):
-        obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings, \
+        obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings, \
                     rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic= data
         dones = dones.squeeze(axis=-1)
         dones_env = np.all(dones, axis=-1)
@@ -254,6 +284,7 @@ class HybridJSBSimRunner(Runner):
             self.opponent_masks = masks[:, self.num_agents // 2:, ...]
 
             obs = obs[:, :self.num_agents // 2, ...]
+            share_obs = share_obs[:, :self.num_agents // 2, ...]
             discrete_actions = discrete_actions[:, :self.num_agents // 2, ...]
             continuous_actions = continuous_actions[:, :self.num_agents // 2, ...]
             all_continuous_actions = all_continuous_actions[:, :self.num_agents // 2, ...]
@@ -263,7 +294,7 @@ class HybridJSBSimRunner(Runner):
             masks = masks[:, :self.num_agents // 2, ...]
             active_masks = active_masks[:, :self.num_agents // 2, ...]
 
-        self.buffer.insert(obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings,\
+        self.buffer.insert(obs, share_obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings,\
                             rewards, masks, action_log_probs, values, \
                          rnn_states_actor, rnn_states_critic, active_masks = active_masks)
 
@@ -273,7 +304,7 @@ class HybridJSBSimRunner(Runner):
         total_episodes, eval_episode_rewards = 0, []
         eval_cumulative_rewards = np.zeros((self.n_eval_rollout_threads, *self.buffer.rewards.shape[2:]), dtype=np.float32)
 
-        eval_obs = self.eval_envs.reset()
+        eval_obs, eval_share_obs = self.eval_envs.reset()
         eval_masks = np.ones((self.n_eval_rollout_threads, *self.buffer.masks.shape[2:]), dtype=np.float32)
         eval_rnn_states = np.zeros((self.n_eval_rollout_threads, *self.buffer.rnn_states_actor.shape[2:]), dtype=np.float32)
 
@@ -298,7 +329,7 @@ class HybridJSBSimRunner(Runner):
                 logging.info(f" Load opponent {policy_idx} for evaluation ({total_episodes+1}/{self.eval_episodes})")
 
                 # reset obs/rnn/mask
-                eval_obs = self.eval_envs.reset()
+                eval_obs, eval_share_obs = self.eval_envs.reset()
                 eval_masks = np.ones_like(eval_masks, dtype=np.float32)
                 eval_rnn_states = np.zeros_like(eval_rnn_states, dtype=np.float32)
                 eval_opponent_obs = eval_obs[:, self.num_agents // 2:, ...]
@@ -324,7 +355,7 @@ class HybridJSBSimRunner(Runner):
                 eval_actions = np.concatenate((eval_actions, eval_opponent_actions), axis=1)
 
             # Obser reward and next obs
-            eval_obs, eval_rewards, eval_dones, continuous_actions, discrete_actions, eval_infos = self.eval_envs.step(eval_obs,eval_actions,self.action_representation)
+            eval_obs, eval_share_obs, eval_rewards, eval_dones, continuous_actions, discrete_actions, eval_infos = self.eval_envs.step(eval_obs,eval_share_obs,eval_actions,self.action_representation)
 
             # [Selfplay] get ego reward
             if self.use_selfplay:
@@ -363,7 +394,7 @@ class HybridJSBSimRunner(Runner):
         logging.info("\nStart render ...")
         self.render_opponent_index = self.all_args.render_opponent_index
         render_episode_rewards = 0
-        render_obs = self.envs.reset()
+        render_obs, render_share_obs = self.envs.reset()
         render_masks = np.ones((1, *self.buffer.masks.shape[2:]), dtype=np.float32)
         render_rnn_states = np.zeros((1, *self.buffer.rnn_states_actor.shape[2:]), dtype=np.float32)
         self.envs.render(mode='txt', filepath=f'{self.run_dir}/{self.experiment_name}.txt.acmi')
@@ -372,7 +403,7 @@ class HybridJSBSimRunner(Runner):
             self.eval_opponent_policy.actor.load_state_dict(torch.load(str(self.model_dir) + f'/actor_{policy_idx}.pt'))
             self.eval_opponent_policy.prep_rollout()
             # reset obs/rnn/mask
-            render_obs = self.envs.reset()
+            render_obs, render_share_obs = self.envs.reset()
             render_masks = np.ones_like(render_masks, dtype=np.float32)
             render_rnn_states = np.zeros_like(render_rnn_states, dtype=np.float32)
             render_opponent_obs = render_obs[:, self.num_agents // 2:, ...]
@@ -399,7 +430,7 @@ class HybridJSBSimRunner(Runner):
                 render_opponent_rnn_states = np.expand_dims(_t2n(render_opponent_rnn_states), axis=0)
                 render_actions = np.concatenate((render_actions, render_opponent_actions), axis=1)
             # Obser reward and next obs
-            render_obs, render_rewards, render_dones, render_infos = self.envs.step(render_actions)
+            render_obs, render_share_obs, render_rewards, render_dones, render_infos = self.envs.step(render_actions)
             if self.use_selfplay:
                 render_rewards = render_rewards[:, :self.num_agents // 2, ...]
             render_episode_rewards += render_rewards
@@ -417,9 +448,14 @@ class HybridJSBSimRunner(Runner):
     def train(self):
         self.policy.prep_training()
         train_infos = self.trainer.train(self.policy, self.buffer)
+        if self.mutual_support:
+            train_infos_disc = self.disc.train(self.buffer)
         train_infos_action = self.action_representation.train(self.buffer)
         self.buffer.after_update()
-        return train_infos, train_infos_action
+        if self.mutual_support:
+            return train_infos, train_infos_disc, train_infos_action
+        else:
+            return train_infos, train_infos_action
 
     def save(self, episode):
         policy_actor_state_dict = self.policy.actor.state_dict()
@@ -457,8 +493,10 @@ class HybridJSBSimRunner(Runner):
         self.opponent_masks = np.ones_like(self.opponent_masks)
 
         # reset env
-        obs = self.envs.reset()
+        obs, share_obs = self.envs.reset()
         if self.all_args.n_choose_opponents > 0:
             self.opponent_obs = obs[:, self.num_agents // 2:, ...]
             obs = obs[:, :self.num_agents // 2, ...]
+            share_obs = share_obs[:, :self.num_agents // 2, ...]
         self.buffer.obs[0] = obs.copy()
+        self.buffer.share_obs[0] = share_obs.copy()

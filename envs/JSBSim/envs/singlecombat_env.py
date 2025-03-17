@@ -1,8 +1,9 @@
 import numpy as np
+from typing import Tuple, Dict
 from .env_base import BaseEnv
 from ..tasks.singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask, Maneuver_curriculum
 from ..tasks.singlecombat_with_missile_task import SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, HierarchicalSingleCombatTask
-from ..tasks import Scenario1, Scenario1_curriculum, Scenario1_RWR, Scenario1_RWR_curriculum, WVRTask
+from ..tasks import Scenario1, Scenario1_curriculum, Scenario1_RWR, Scenario1_RWR_curriculum, WVRTask, Scenario1_Hybrid
 from ..tasks.KAI_project_task import Scenario1_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -28,6 +29,8 @@ class SingleCombatEnv(BaseEnv):
             self.task = Scenario1_RWR(self.config)
         elif taskname == "scenario1_rwr_curriculum":
             self.task = Scenario1_RWR_curriculum(self.config)
+        elif taskname == "scenario1_hybrid":
+            self.task = Scenario1_Hybrid(self.config)
         elif taskname == "wvr":
             self.task = WVRTask(self.config)     
         elif taskname == "maneuver_curriculum":
@@ -120,3 +123,4 @@ class SingleCombatEnv(BaseEnv):
         for idx, sim in enumerate(self.agents.values()):
             sim.reload(init_states[idx])
         self._tempsims.clear()
+

@@ -300,9 +300,10 @@ class SubprocHybridVecEnv(HybridVecEnv):
 
     def step_async(self, pre_obss, actions, rnn_states, action_rep):
         self._assert_not_closed()
+        if pre_obss is None:
+            pre_obss = np.zeros((self.nremotes, self.num_agents, get_shape_from_space(self.observation_space)[0]))
         actions = np.array_split(actions, self.nremotes)
         pre_obss = np.array_split(pre_obss, self.nremotes)
-        action_reps = np.array_split(action_reps, self.nremotes)
         rnn_states = np.array_split(rnn_states, self.nremotes)
 
         for remote, pre_obs, action, rnn_state in zip(self.remotes, pre_obss, actions, rnn_states):

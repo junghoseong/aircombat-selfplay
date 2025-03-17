@@ -224,37 +224,28 @@ class HierarchicalSingleCombatTask(SingleCombatTask):
     def normalize_action(self, env, agent_id, action):
         """Convert high-level action into low-level action.
         """
-        if self.use_baseline and agent_id in env.enm_ids:
-            action = self.baseline_agent.get_action(env, env.task) # add for debug
-            action = self.baseline_agent.normalize_action(env, agent_id, action)
-            return action
-        else:
-            # generate low-level input_obs
-            raw_obs = self.get_obs(env, agent_id)
-            input_obs = np.zeros(12)
-            # (1) delta altitude/heading/velocity
-            if env.agents[agent_id].get_property_values(self.state_var)[2] < 3500:
-                print("current altitude is {}m".format(np.array(env.agents[agent_id].get_property_values(self.state_var)[2])))
-                input_obs[0] = self.norm_delta_altitude[0]
-            else:            
-                input_obs[0] = self.norm_delta_altitude[action[0]]
-                
-            input_obs[1] = self.norm_delta_heading[action[1]]
-            input_obs[2] = self.norm_delta_velocity[action[2]]
-            # (2) ego info
-            input_obs[3:12] = raw_obs[:9]
-            input_obs = np.expand_dims(input_obs, axis=0)
-            # output low-level action
-            _action, _rnn_states = self.lowlevel_policy(input_obs, self._inner_rnn_states[agent_id])
-            action = _action.detach().cpu().numpy().squeeze(0)
-            self._inner_rnn_states[agent_id] = _rnn_states.detach().cpu().numpy()
-            # normalize low-level action
-            norm_act = np.zeros(4)
-            norm_act[0] = action[0] / 20 - 1.
-            norm_act[1] = action[1] / 20 - 1.
-            norm_act[2] = action[2] / 20 - 1.
-            norm_act[3] = action[3] / 58 + 0.4
-            return norm_act
+        # generate low-level input_obs
+        raw_obs = self.get_obs(env, agent_id)
+        input_obs = np.zeros(12)
+        # (1) delta altitude/heading/velocity
+        input_obs[0] = action[0]
+        input_obs[1] = action[1]
+        input_obs[2] = action[2]
+        cont_action = action
+        # (2) ego info
+        input_obs[3:12] = raw_obs[:9]
+        input_obs = np.expand_dims(input_obs, axis=0)
+        # output low-level action
+        _action, _rnn_states = self.lowlevel_policy(input_obs, self._inner_rnn_states[agent_id])
+        action = _action.detach().cpu().numpy().squeeze(0)
+        self._inner_rnn_states[agent_id] = _rnn_states.detach().cpu().numpy()
+        # normalize low-level action
+        norm_act = np.zeros(4)
+        norm_act[0] = action[0] / 20 - 1.
+        norm_act[1] = action[1] / 20 - 1.
+        norm_act[2] = action[2] / 20 - 1.
+        norm_act[3] = action[3] / 58 + 0.4
+        return norm_act,cont_action
 
     def reset(self, env):
         """Task-specific reset, include reward function reset.

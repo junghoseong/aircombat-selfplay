@@ -172,10 +172,15 @@ class HierarchicalMultipleCombatTask(MultipleCombatTask):
         raw_obs = self.get_obs(env, agent_id)
         input_obs = np.zeros(12)
         # (1) delta altitude/heading/velocity
-        input_obs[0] = action[0]
-        input_obs[1] = action[1]
-        input_obs[2] = action[2]
-        cont_action = action
+        if isinstance(action[0], int):
+            input_obs[0] = self.norm_delta_altitude[action[0]]
+            input_obs[1] = self.norm_delta_heading[action[1]]
+            input_obs[2] = self.norm_delta_velocity[action[2]]
+        else:
+            input_obs[0] = action[0]
+            input_obs[1] = action[1]
+            input_obs[2] = action[2]
+            cont_action = action
         # (2) ego info
         input_obs[3:12] = raw_obs[:9]
         input_obs = np.expand_dims(input_obs, axis=0)
@@ -189,7 +194,10 @@ class HierarchicalMultipleCombatTask(MultipleCombatTask):
         norm_act[1] = action[1] / 20 - 1.
         norm_act[2] = action[2] / 20 - 1.
         norm_act[3] = action[3] / 58 + 0.4
-        return norm_act,cont_action
+        if isinstance(action[0], int):
+            return norm_act
+        else:
+            return norm_act,cont_action
 
     def reset(self, env):
         """Task-specific reset, include reward function reset.
