@@ -9,6 +9,7 @@ import itertools
 from .mlp import MLPBase
 from .utils import check, get_shape_from_space
 from ..utils.buffer import SharedHybridReplayBuffer
+from .distributions import BetaShootBernoulli, Categorical
 
 class VAE(nn.Module):
     def __init__(self, state_dim, discrete_action_dim, continuous_action_dim, latent_dim, #max_action = 1.0,

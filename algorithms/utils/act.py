@@ -20,7 +20,6 @@ class ACTLayer(nn.Module):
             self._mlp_actlayer = True
             self.mlp = MLPLayer(input_dim, hidden_size, activation_id)
             input_dim = self.mlp.output_size
-
         if isinstance(act_space, gym.spaces.Discrete):
             action_dim = act_space.n
             self.action_out = Categorical(input_dim, action_dim, gain)
@@ -104,13 +103,13 @@ class ACTLayer(nn.Module):
             actions = []
             action_log_probs = []
             for action_out in self.action_outs[:-4]:
-                action_dist = action_out(x)
+                action_dist = action_out(x)    # gets the distribution
                 action = action_dist.mode() if deterministic else action_dist.sample()
                 action_log_prob = action_dist.log_probs(action)
                 actions.append(action)
                 action_log_probs.append(action_log_prob)
                              
-            for action_out in self.action_outs[-4:]:
+            for action_out in self.action_outs[-4:]:   #BetaShootBernoulli - Munition
                 shoot_action_dist = action_out(x, **kwargs)
                 shoot_action = shoot_action_dist.mode() if deterministic else shoot_action_dist.sample()
                 shoot_action_log_prob = shoot_action_dist.log_probs(shoot_action)
