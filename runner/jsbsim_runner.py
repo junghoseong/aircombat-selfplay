@@ -134,6 +134,7 @@ class JSBSimRunner(Runner):
 
     @torch.no_grad()
     def eval(self, total_num_steps):
+        self.render(total_num_steps)
         logging.info("\nStart evaluation...")
         total_episodes, eval_episode_rewards = 0, []
         eval_cumulative_rewards = np.zeros((self.n_eval_rollout_threads, *self.buffer.rewards.shape[2:]), dtype=np.float32)
@@ -171,13 +172,13 @@ class JSBSimRunner(Runner):
         logging.info("...End evaluation")
 
     @torch.no_grad()
-    def render(self):
+    def render(self, total_num_steps):
         logging.info("\nStart render ...")
         render_episode_rewards = 0
-        render_obs = self.envs.reset()
+        render_obs = self.eval_envs.reset()
         render_masks = np.ones((1, *self.buffer.masks.shape[2:]), dtype=np.float32)
         render_rnn_states = np.zeros((1, *self.buffer.rnn_states_actor.shape[2:]), dtype=np.float32)
-        self.envs.render(mode='txt', filepath=f'{self.run_dir}/{self.experiment_name}.txt.acmi')
+        self.eval_envs.render(mode='txt', filepath=f'{self.run_dir}/{self.experiment_name}_{total_num_steps}.txt.acmi')
         while True:
             self.policy.prep_rollout()
             render_actions, render_rnn_states = self.policy.act(np.concatenate(render_obs),
@@ -188,11 +189,11 @@ class JSBSimRunner(Runner):
             render_rnn_states = np.expand_dims(_t2n(render_rnn_states), axis=0)
 
             # Obser reward and next obs
-            render_obs, render_rewards, render_dones, render_infos = self.envs.step(render_actions)
+            render_obs, render_rewards, render_dones, render_infos = self.eval_envs.step(render_actions)
             if self.use_selfplay:
                 render_rewards = render_rewards[:, :self.num_agents // 2, ...]
             render_episode_rewards += render_rewards
-            self.envs.render(mode='txt', filepath=f'{self.run_dir}/{self.experiment_name}.txt.acmi')
+            self.eval_envs.render(mode='txt', filepath=f'{self.run_dir}/{self.experiment_name}_{total_num_steps}.txt.acmi')
             if render_dones.all():
                 break
         render_infos = {}

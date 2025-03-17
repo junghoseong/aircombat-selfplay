@@ -157,11 +157,11 @@ class Discriminator(nn.Module):
         rnn_states_actors = check(rnn_states_actor).squeeze(dim=2).to(**self.tpdv)
 
         ### agent 1 ###
-
+        #try conditioning with ego's weapon, SSI changed
         q_input = torch.cat([
             rnn_states_actors[:,0,:],      
             actions[:,0,:],
-            actions[:,1,:]
+            actions[:,1,4:]
         ], dim=-1)
 
         log_prob = self.pred.get_log_pi(q_input, next_obs[:,0,:])
@@ -179,7 +179,7 @@ class Discriminator(nn.Module):
         q_input = torch.cat([
             rnn_states_actors[:,0,:],      
             actions[:,1,:],
-            actions[:,0,:]
+            actions[:,0,4:]
         ], dim=-1)
 
         log_prob = self.pred.get_log_pi(q_input, next_obs[:,1,:])
@@ -211,6 +211,7 @@ class Discriminator(nn.Module):
         actions = check(actions).to(**self.tpdv)
         dones = check(dones).to(**self.tpdv)
         rnn_states_actors = check(rnn_states_actor).squeeze().to(**self.tpdv)
+        print(actions[0,:])
 
         ### agent 1 ###
 

@@ -8,7 +8,7 @@ import time
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from algorithms.utils.discriminator import discriminator
+from algorithms.utils.discriminator import Discriminator
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -24,6 +24,10 @@ class Args:
         self.recurrent_hidden_layers = 1
         self.tpdv = dict(dtype=torch.float32, device=torch.device('cpu'))
         self.use_prior = True
+        self.ppo_epoch = 10
+        self.num_mini_batch = 10
+        self.data_chunk_length = 10
+        self.lr = 0.001
     
 def _t2n(x):
     return x.detach().cpu().numpy()
@@ -37,8 +41,8 @@ def animate_mi_vs_timestep(mi_list, timestep_list, save_path = "mi_vs_timestep.g
     fig, ax = plt.subplots(figsize=(10, 6))
     lines = []
     for i in range(mi_array.shape[1]):
-        line, _ = ax.plot([], [], label=f"MI of agent {i + 1}")
-        lines.append(line)
+        line = ax.plot([], [], label=f"MI of agent {i + 1}")
+        lines.append(line[0])
         
     ax.set_xlim(min(timestep_list), max(timestep_list))
     ax.set_ylim(np.min(mi_array), np.max(mi_array))
@@ -47,7 +51,7 @@ def animate_mi_vs_timestep(mi_list, timestep_list, save_path = "mi_vs_timestep.g
     ax.set_title("MI vs Timestep")
     ax.legend()
     ax.grid(True)
-    
+
     def update(frame):
         for i, line in enumerate(lines):
             line.set_data(timestep_list[:frame], mi_array[:frame, i])
@@ -65,17 +69,25 @@ enm_policy_index = 0
 episode_rewards = 0
 experiment_name = "Scenario2"
 
-env = MultipleCombatEnv("2v2/scenario2")
+env = MultipleCombatEnv("scenario2/scenario2")
 env.seed(0)
 args = Args()
 
-# path = "./scripts/results/MultipleCombat/2v2/scenario2/mappo/v1/wandb/latest-run/files"
 ego_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 enm_policy = PPOActor(args, env.observation_space, env.action_space, device=torch.device("cuda"))
 ego_policy.eval()
 enm_policy.eval()
-ego_policy.load_state_dict(torch.load("./checkpoint/actor_25.pt"))
+ego_policy.load_state_dict(torch.load("./checkpoint/curriculum_actor.pt"))
 enm_policy.load_state_dict(torch.load("./checkpoint/actor_2.pt"))
+
+### Load discriminator
+num_agents = 4
+obs_space = env.observation_space
+share_obs_space = env.share_observation_space
+act_space = env.action_space
+
+discriminator = Discriminator(args, num_agents, obs_space, share_obs_space, act_space, device=torch.device("cuda"))
+discriminator.load_state_dict(torch.load("./checkpoint/discriminator_latest.pt"))
 
 print("Start render")
 obs, _ = env.reset()
@@ -88,6 +100,9 @@ masks = np.ones((num_agents // 2, 1))
 enm_obs =  obs[num_agents // 2:, :]
 ego_obs =  obs[:num_agents // 2, :]
 timestep = 0
+mi_list = []
+timestep_list = []
+
 while True:
     start = time.time()
     ego_actions, _, ego_rnn_states = ego_policy(ego_obs, ego_rnn_states, masks, deterministic=True)
@@ -102,7 +117,14 @@ while True:
     actions = np.concatenate((ego_actions, enm_actions), axis=0)
     # Obser reward and next obs
     start = time.time()
+    
     obs, _, rewards, dones, infos = env.step(actions)
+    
+    MI = discriminator.compute_MI(ego_obs, obs, actions, dones, ego_rnn_states)
+
+    mi_list.append(MI)
+    timestep_list.append(timestep)
+    
     end = time.time()
     # print(f"Env step time: {end-start}")
     rewards = rewards[:num_agents // 2, ...]
@@ -120,3 +142,4 @@ while True:
     timestep += 1
 
 print(episode_rewards)
+animate_mi_vs_timestep(mi_list, timestep_list)

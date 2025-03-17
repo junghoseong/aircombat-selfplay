@@ -14,7 +14,7 @@ from envs.JSBSim.envs import SingleCombatEnv, SingleControlEnv
 from envs.JSBSim.model.baseline_actor import BaselineActor
 from envs.JSBSim.model.baseline import BaselineAgent, PursueAgent, ManeuverAgent
 
-env = SingleControlEnv(config_name='1/approach')
+env = SingleControlEnv(config_name='singlecontrol/approach')
 obs = env.reset()
 env.render(filepath="loiter.txt.acmi")
 agent0 = ManeuverAgent(agent_id=0, maneuver='triangle')

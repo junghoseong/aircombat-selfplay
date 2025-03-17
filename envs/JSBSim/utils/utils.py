@@ -18,6 +18,7 @@ def parse_config(filename):
         f'config path {filepath} does not exist. Please pass in a string that represents the file path to the config yaml.'
     with open(filepath, 'r', encoding='utf-8') as f:
         config_data = yaml.load(f, Loader=yaml.FullLoader)
+        print(config_data)
 
     return type('EnvConfig', (object,), config_data)
 
@@ -116,6 +117,11 @@ def in_range_rad(angle):
     if angle > np.pi:
         angle -= 2 * np.pi
     return angle
+
+def in_range_rads(angles):
+    angles = angles % (2 * np.pi)  
+    angles[angles > np.pi] -= 2 * np.pi  
+    return angles
 
 def calculate_coordinates_heading_by_curriculum(center_lat, center_lon, radius_km, angles_deg):
     R = 6371  # 지구 평균 반지름 (km)

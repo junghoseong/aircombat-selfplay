@@ -4,7 +4,8 @@ from collections import deque
 
 from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask
 from .multiplecombat_task import MultipleCombatTask, HierarchicalMultipleCombatTask
-from ..reward_functions import AltitudeReward, PostureReward, MissilePostureReward, EventDrivenReward, ShootPenaltyReward
+from ..reward_functions import AltitudeReward, CombatGeometryReward, EventDrivenReward, GunBEHITReward, GunTargetTailReward, \
+    GunWEZReward, GunWEZDOTReward, PostureReward, RelativeAltitudeReward, HeadingReward, MissilePostureReward, ShootPenaltyReward
 from ..core.simulatior import MissileSimulator, AIM_9M, AIM_120B, ChaffSimulator
 from ..utils.utils import LLA2NEU, get_AO_TA_R
 
@@ -184,7 +185,8 @@ class MultipleCombatShootMissileTask(MultipleCombatDodgeMissileTask):
             PostureReward(self.config),
             AltitudeReward(self.config),
             EventDrivenReward(self.config),
-            ShootPenaltyReward(self.config)
+            ShootPenaltyReward(self.config),
+            MissilePostureReward(self.config)
         ]
 
     def load_observation_space(self):

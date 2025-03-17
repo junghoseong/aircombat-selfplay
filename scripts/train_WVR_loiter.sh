@@ -1,9 +1,8 @@
 #!/bin/sh
-
 env="SingleCombat"
-scenario="1v1/WVR_loiter"
+scenario="scenario1/WVR_vs_loiter"
 algo="ppo"
-exp="wvr_loiter"
+exp="jhs_wvr_loiter"
 seed=1
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"

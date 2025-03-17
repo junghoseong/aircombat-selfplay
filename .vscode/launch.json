@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: Debug render_scenario",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "/home/hsjung-larr/workspace/aircombat-selfplay/render_vs_loiter.py",
+        "console": "integratedTerminal",
+        "cwd": "/home/hsjung-larr/workspace/aircombat-selfplay",
+        "env": {
+          "PYTHONPATH": "/home/hsjung-larr/anaconda3/envs/aircombat/lib/python3.8/site-packages"
+        },
+        "pythonPath": "/home/hsjung-larr/anaconda3/envs/aircombat/bin/python",
+        "justMyCode": true,
+        "args": []
+      }
+    ]
+  }
+  

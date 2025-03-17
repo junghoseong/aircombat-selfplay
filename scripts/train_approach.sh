@@ -1,12 +1,12 @@
 #!/bin/sh
 env="SingleControl"
-scenario="1/approach"
+scenario="singlecontrol/approach"
 algo="ppo"
 exp="jhs"
 seed=5
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"
-CUDA_VISIBLE_DEVICES=0 python train/train_jsbsim.py \
+CUDA_VISIBLE_DEVICES=3 python train/train_jsbsim.py \
     --env-name ${env} --algorithm-name ${algo} --scenario-name ${scenario} --experiment-name ${exp} \
     --seed ${seed} --n-training-threads 1 --n-rollout-threads 32 --cuda \
     --log-interval 1 --save-interval 1 \

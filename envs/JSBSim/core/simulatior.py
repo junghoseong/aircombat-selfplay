@@ -384,7 +384,7 @@ class ChaffSimulator(BaseSimulator):
         if self.is_alive:
             log_msg = super().log()
         else:
-            log_msg = None
+            log_msg = f"-{self.uid}\n"
         return log_msg
 
     def close(self):
@@ -447,7 +447,7 @@ class MissileSimulator(BaseSimulator):
         """Missile is already exploded"""
         return self.__status == MissileSimulator.HIT \
             or self.__status == MissileSimulator.MISS
-    
+            
     @property
     def is_miss(self):
         return self.__status == MissileSimulator.MISS
@@ -544,6 +544,8 @@ class MissileSimulator(BaseSimulator):
             roll, pitch, yaw = self.get_rpy() * 180 / np.pi
             log_msg += f"{self.uid}F,T={lon}|{lat}|{alt}|{roll}|{pitch}|{yaw},"
             log_msg += f"Type=Misc+Explosion,Color={self.color},Radius={self._Rc}"
+        elif self.is_done:
+            log_msg = f"-{self.uid}\n"
         else:
             log_msg = None
         return log_msg
@@ -606,12 +608,27 @@ class MissileSimulator(BaseSimulator):
             self._m = self._m - self.dt * self._dm
 
 class AIM_9M(MissileSimulator):
+    
+    @classmethod
+    def create(cls, parent: AircraftSimulator, target: AircraftSimulator, uid: str, missile_model: str = "AIM-9L"):
+        assert parent.dt == target.dt, "integration timestep must be same!"
+        missile = AIM_9M(uid, parent.color, missile_model, parent.dt)
+        missile.launch(parent)
+        missile.target(target)
+        return missile
+    
     def __init__(self,
                  uid="A0101",
                  color="Red",
+                 model="AIM-9M",
                  dt=1 / 12):
         super().__init__(uid=uid, color=color, model="AIM-9M", dt=dt)
-        
+
+        self.__status = MissileSimulator.INACTIVE
+        self.model = model
+        self.parent_aircraft = None  # type: AircraftSimulator
+        self.target_aircraft = None  # type: AircraftSimulator
+        self.render_explosion = False
         # # missile parameters (for AIM-9M)
         # self._g = 9.81          # gravitational acceleration
         # self._t_max = 2.63      # time limitation of missile life (t_max=Range/Speed=7,000/2,662)
@@ -628,27 +645,57 @@ class AIM_9M(MissileSimulator):
         # self._v_min = 150       # minimum velocity, unit: m/s
         
         # missile parameters (for AIM-9L)
-        self._g = 9.81      # gravitational acceleration
-        self._t_max = 60    # time limitation of missile life
-        self._t_thrust = 3  # time limitation of engine
-        self._Isp = 120     # average specific impulse
-        self._Length = 2.87
-        self._Diameter = 0.127
-        self._cD = 0.4      # aerodynamic drag factor
-        self._m0 = 84       # mass, unit: kg
-        self._dm = 6        # mass loss rate, unit: kg/s
-        self._K = 3         # proportionality constant of proportional navigation
-        self._nyz_max = 30  # max overload
-        self._Rc = 300      # radius of explosion, unit: m
-        self._v_min = 150   # minimun velocity, unit: m/s
+        # self._g = 9.81      # gravitational acceleration
+        # self._t_max = 60    # time limitation of missile life
+        # self._t_thrust = 3  # time limitation of engine
+        # self._Isp = 120     # average specific impulse
+        # self._Length = 2.87
+        # self._Diameter = 0.127
+        # self._cD = 0.4      # aerodynamic drag factor
+        # self._m0 = 84       # mass, unit: kg
+        # self._dm = 6        # mass loss rate, unit: kg/s
+        # self._K = 3         # proportionality constant of proportional navigation
+        # self._nyz_max = 30  # max overload
+        # self._Rc = 300      # radius of explosion, unit: m
+        # self._v_min = 150   # minimun velocity, unit: m/s
+        
+        # missile parameters (for AIM-120B)
+        self._g = 9.81          # gravitational acceleration
+        self._t_max = 27.22     # time limitation of missile life (t_max=Range/Speed=37,000/1,359)
+        self._t_thrust = 1.4    # time limitation of engine (seconds) (given)
+        self._Isp = 1837        # average specific impulse (Isp=Thrust/g_0*dm=108042/(6*9.81))
+        self._Length = 3.66     # provided (standard specficiation)
+        self._Diameter = 0.18   # provided (standard specficiation) 
+        self._cD = 0.02         # aerodynamic drag factor (항력계수)
+        self._m0 = 152          # mass, unit: kg (in database : 335 lbs)
+        self._dm = 6            # mass loss rate, unit: kg/s (Assume: constant)
+        self._K = 5             # proportionality constant of proportional navigation
+        self._nyz_max = 50      # max overload (provided)
+        self._Rc = 5            # radius of explosion, unit: m (Assume: 5m radius)
+        self._v_min = 150       # minimum velocity, unit: m/s
         
 class AIM_120B(MissileSimulator):
+    @classmethod
+    def create(cls, parent: AircraftSimulator, target: AircraftSimulator, uid: str, missile_model: str = "AIM-9L"):
+        assert parent.dt == target.dt, "integration timestep must be same!"
+        missile = AIM_120B(uid, parent.color, missile_model, parent.dt)
+        missile.launch(parent)
+        missile.target(target)
+        return missile
+    
     def __init__(self,
                  uid="A0101",
                  color="Red",
+                 model="AIM-120B",
                  dt=1 / 12):
         super().__init__(uid=uid, color=color, model="AIM-120B", dt=dt)
         
+        self.__status = MissileSimulator.INACTIVE
+        self.model = model
+        self.parent_aircraft = None  # type: AircraftSimulator
+        self.target_aircraft = None  # type: AircraftSimulator
+        self.render_explosion = False
+                
         # missile parameters (for AIM-120B)
         self._g = 9.81          # gravitational acceleration
         self._t_max = 27.22     # time limitation of missile life (t_max=Range/Speed=37,000/1,359)
