@@ -267,7 +267,7 @@ class Action_representation(nn.Module):
         return dist
 
 
-    def select_discrete_action(self, action):  #discrete action matching
+    def select_discrete_action(self, action):  #discrete action matching ####TODO : put this into ShootBernoulli. Then why use hybrid action?
         embeddings = self.vae.embeddings.to(**self.tpdv)
         action = torch.tensor(action)
         if action.dim() == 1:

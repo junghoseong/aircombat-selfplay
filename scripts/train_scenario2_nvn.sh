@@ -2,11 +2,7 @@
 env="MultipleCombat"
 scenario="scenario2/scenario2_nvn"
 algo="mappo"
-<<<<<<< HEAD:scripts/train_MI_support_2v2_curriculum.sh
-exp="MI_experiment_curriculum_move_vs_firearm"
-=======
 exp="jhs_scenario2_nvn"
->>>>>>> ac8504c6dfc6d247cf5d21e0cc8f487d01420e4a:scripts/train_scenario2_nvn.sh
 seed=0
 
 echo "env is ${env}, scenario is ${scenario}, algo is ${algo}, exp is ${exp}, seed is ${seed}"
