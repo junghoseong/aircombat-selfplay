@@ -74,7 +74,7 @@ class HybridVecEnv(ABC):
     """
     closed = False
 
-    def __init__(self, num_envs, observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space):
+    def __init__(self, num_envs, observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space, rnn_actor_space):
         self.num_envs = num_envs
         self.observation_space = observation_space
         self.action_space = action_space
@@ -82,6 +82,7 @@ class HybridVecEnv(ABC):
         self.continuous_action_space = continuous_action_space
         self.discrete_embedding_space = discrete_embedding_space
         self.continuous_embedding_space = continuous_embedding_space
+        self.rnn_actor_space = rnn_actor_space
 
     @abstractmethod
     def reset(self):
@@ -96,7 +97,7 @@ class HybridVecEnv(ABC):
         pass
 
     @abstractmethod
-    def step_async(self, obs, actions, action_representation):
+    def step_async(self, obs, actions, rnn_actor_state, action_representation):
         """
         Tell all the environments to start taking a step
         with the given actions.
@@ -134,13 +135,13 @@ class HybridVecEnv(ABC):
         self.close_extras()
         self.closed = True
 
-    def step(self, obs, actions, action_representation):
+    def step(self, obs, actions, rnn_actor_state, action_representation):
         """
         Step the environments synchronously.
 
         This is available for backwards compatibility.
         """
-        self.step_async(obs, actions, action_representation)
+        self.step_async(obs, actions, rnn_actor_state, action_representation)
         return self.step_wait()
 
 
@@ -155,18 +156,20 @@ class DummyHybridVecEnv(HybridVecEnv):
         self.envs = [fn() for fn in env_fns]
         env = self.envs[0]
         super().__init__(len(self.envs), env.observation_space, env.action_space, \
-                         env.discrete_action_space,env.continuous_action_space, env.discrete_embedding_space, env.continuous_embedding_space)
+                         env.discrete_action_space,env.continuous_action_space, env.discrete_embedding_space, env.continuous_embedding_space,env.rnn_actor_space)
 
         self.actions = None
         self.num_agents = getattr(self.envs[0], "num_agents", 1)
 
-    def step_async(self, pre_obss, actions, action_representations):
+    def step_async(self, pre_obss, actions,rnn_actor_states, action_representations):
         self.pre_obss = pre_obss      
         self.actions = actions
         self.action_representations = action_representations
+        self.rnn_actor_states = rnn_actor_states
 
     def step_wait(self):
-        results = [env.step(o,a,ar) for (o, a, ar, env) in zip(self.pre_obss, self.actions, self.action_representations, self.envs)]
+        ar = self.action_representations
+        results = [env.step(o,a,rnn,ar) for (o, a,rnn, env) in zip(self.pre_obss, self.actions,self.rnn_actor_states, self.envs)]
         obss, rewards, dones, infos = map(list, zip(*results))
         for (i, done) in enumerate(dones):
             if 'bool' in done.__class__.__name__:
@@ -215,8 +218,8 @@ def worker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
         parent_remote (Connection): used for mainprocess to send/receive data. [Need to be closed in subprocess!]
         env_fn_wrappers (method): functions to create gym.Env instance.
     """
-    def step_env(env, pre_obs, action, action_representation):
-        obs, reward, done, info = env.step(pre_obs, action, action_representation)
+    def step_env(env, pre_obs, action,rnn_state, action_representation):
+        obs, reward, done, info = env.step(pre_obs, action, rnn_state, action_representation)
         if 'bool' in done.__class__.__name__:
             if done:
                 obs = env.reset()
@@ -234,17 +237,17 @@ def worker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
     envs = [env_fn_wrapper() for env_fn_wrapper in env_fn_wrappers.x]
     try:
         while True:
-            cmd, pre_obss, actions, action_reps = remote.recv()
+            cmd, pre_obss, actions,rnn_states, action_rep = remote.recv()
             if cmd == 'step':
-                remote.send([step_env(env, pre_obs, action, action_rep) for env, pre_obs, action, action_rep\
-                              in zip(envs, pre_obss, actions, action_reps)])
+                remote.send([step_env(env, pre_obs, action, rnn_state, action_rep) for env, pre_obs, action, rnn_state\
+                              in zip(envs, pre_obss, actions,rnn_states)])
             elif cmd == 'reset':
                 remote.send([env.reset() for env in envs])
             elif cmd == 'close':
                 remote.close()
                 break
             elif cmd == 'get_spaces':
-                remote.send(CloudpickleWrapper((envs[0].observation_space, envs[0].action_space,\
+                remote.send(CloudpickleWrapper((envs[0].observation_space, envs[0].action_space,envs[0].rnn_actor_space,\
                                                 envs[0].discrete_action_space,envs[0].continuous_action_space, envs[0].discrete_embedding_space, envs[0].continuous_embedding_space)))
             elif cmd == 'get_num_agents':
                 remote.send(CloudpickleWrapper((getattr(envs[0], "num_agents", 1))))
@@ -288,21 +291,22 @@ class SubprocHybridVecEnv(HybridVecEnv):
         for remote in self.work_remotes:
             remote.close()
 
-        self.remotes[0].send(('get_spaces', None,None,None))
-        observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space = self.remotes[0].recv().x
-        super().__init__(nenvs, observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space)
+        self.remotes[0].send(('get_spaces', None,None,None,None))
+        observation_space, action_space, rnn_actor_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space = self.remotes[0].recv().x
+        super().__init__(nenvs, observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space, rnn_actor_space)
 
-        self.remotes[0].send(('get_num_agents', None,None,None))
+        self.remotes[0].send(('get_num_agents', None,None,None,None))
         self.num_agents = self.remotes[0].recv().x
 
-    def step_async(self, pre_obss, actions, action_reps):
+    def step_async(self, pre_obss, actions, rnn_states, action_rep):
         self._assert_not_closed()
         actions = np.array_split(actions, self.nremotes)
         pre_obss = np.array_split(pre_obss, self.nremotes)
         action_reps = np.array_split(action_reps, self.nremotes)
+        rnn_states = np.array_split(rnn_states, self.nremotes)
 
-        for remote, pre_obs, action, action_rep in zip(self.remotes, pre_obss, actions, action_reps):
-            remote.send(('step', pre_obs, action, action_rep))
+        for remote, pre_obs, action, rnn_state in zip(self.remotes, pre_obss, actions, rnn_states):
+            remote.send(('step', pre_obs, action, rnn_state, action_rep))
         self.waiting = True
 
     def step_wait(self):
@@ -310,13 +314,14 @@ class SubprocHybridVecEnv(HybridVecEnv):
         results = [remote.recv() for remote in self.remotes]
         results = self._flatten_series(results)  # [[tuple] * in_series] * nremotes => [tuple] * nenvs
         self.waiting = False
-        obss, rewards, dones, infos = zip(*results)
-        return self._flatten(obss), self._flatten(rewards), self._flatten(dones), np.array(infos)
+        obss, rewards, dones, continuous_actions, discrete_actions, infos = zip(*results)
+        return self._flatten(obss), self._flatten(rewards), self._flatten(dones), self._flatten(continuous_actions),\
+            self._flatten(discrete_actions),np.array(infos)
 
     def reset(self):
         self._assert_not_closed()
         for remote in self.remotes:
-            remote.send(('reset', None,None,None))
+            remote.send(('reset', None,None,None,None))
         obss = [remote.recv() for remote in self.remotes]
         obss = self._flatten_series(obss)
         return self._flatten(obss)
@@ -326,7 +331,7 @@ class SubprocHybridVecEnv(HybridVecEnv):
             for remote in self.remotes:
                 remote.recv()
         for remote in self.remotes:
-            remote.send(('close', None,None,None))
+            remote.send(('close', None,None,None,None))
         for p in self.ps:
             p.join()
 
@@ -357,8 +362,8 @@ class ShareHybridVecEnv(HybridVecEnv):
     Multi-agent version of VevEnv, that is, support `share_observation_space` interface.
     """
     def __init__(self, num_envs, observation_space, share_observation_space, action_space,\
-                  discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space):
-        super().__init__(num_envs, observation_space, action_space,discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space)
+                  discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space, rnn_actor_space):
+        super().__init__(num_envs, observation_space, action_space,discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space, rnn_actor_space)
         self.share_observation_space = share_observation_space
         
 
@@ -374,19 +379,20 @@ class ShareDummyHybridVecEnv(DummyHybridVecEnv, ShareHybridVecEnv):
         self.envs = [fn() for fn in env_fns]
         env = self.envs[0]
         ShareHybridVecEnv.__init__(self, len(self.envs), env.observation_space, env.share_observation_space, env.action_space,\
-                             env.discrete_action_space,env.continuous_action_space, env.discrete_embedding_space, env.continuous_embedding_space)
+                             env.discrete_action_space,env.continuous_action_space, env.discrete_embedding_space, env.continuous_embedding_space, env.rnn_actor_space)
         self.actions = None
         self.num_agents = getattr(self.envs[0], "num_agents", 1)
     
-    def step_async(self, pre_obss, share_obss, actions, action_representations):
+    def step_async(self, pre_obss, share_obss, actions,rnn_states, action_representations):
         self.pre_obss = pre_obss
         self.share_obss = share_obss      
         self.actions = actions
+        self.rnn_states = rnn_states
         self.action_representation = action_representations
 
     def step_wait(self):
         ar = self.action_representation
-        results = [env.step(o,so,a,ar) for (o, so, a, env) in zip(self.pre_obss, self.share_obss, self.actions, self.envs)]
+        results = [env.step(o,so,a,rnn,ar) for (o, so, a, rnn, env) in zip(self.pre_obss, self.share_obss, self.actions,self.rnn_states, self.envs)]
         obs, share_obs, rews, dones, continuous_actions, discrete_actions, infos = map(list, zip(*results))
         for (i, done) in enumerate(dones):
             if 'bool' in done.__class__.__name__:
@@ -409,13 +415,13 @@ class ShareDummyHybridVecEnv(DummyHybridVecEnv, ShareHybridVecEnv):
         obs, share_obs = map(np.array, zip(*results))
         return obs, share_obs
 
-    def step(self, obs, share_obs, actions, action_representation):
+    def step(self, obs, share_obs, actions, rnn_states, action_representation):
         """
         Step the environments synchronously.
 
         This is available for backwards compatibility.
         """
-        self.step_async(obs, share_obs, actions, action_representation)
+        self.step_async(obs, share_obs, actions, rnn_states, action_representation)
         return self.step_wait()
 
 
@@ -428,8 +434,8 @@ def shareworker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
         parent_remote (Connection): used for mainprocess to send/receive data. [Need to be closed in subprocess!]
         env_fn_wrappers (method): functions to create gym.Env instance.
     """
-    def step_env(env, pre_obs, pre_share_obs, action, action_representation):
-        obs, share_obs, reward, done, continuous_actions, discrete_actions, info = env.step(pre_obs, pre_share_obs, action, action_representation)
+    def step_env(env, pre_obs, pre_share_obs, action, rnn_states, action_representation):
+        obs, share_obs, reward, done, continuous_actions, discrete_actions, info = env.step(pre_obs, pre_share_obs, action, rnn_states, action_representation)
         if 'bool' in done.__class__.__name__:
             if done:
                 obs, share_obs = env.reset()
@@ -447,10 +453,10 @@ def shareworker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
     envs = [env_fn_wrapper() for env_fn_wrapper in env_fn_wrappers.x]
     try:
         while True:
-            cmd, pre_obss, pre_share_obss, actions, action_rep = remote.recv()
+            cmd, pre_obss, pre_share_obss, actions, rnn_states, action_rep = remote.recv()
             if cmd == 'step':
-                remote.send([step_env(env, pre_obs, pre_share_obs, action, action_rep) for env, pre_obs, pre_share_obs, action\
-                              in zip(envs, pre_obss, pre_share_obss, actions)])
+                remote.send([step_env(env, pre_obs, pre_share_obs, action, rnn_state, action_rep) for env, pre_obs, pre_share_obs, action, rnn_state\
+                              in zip(envs, pre_obss, pre_share_obss, actions, rnn_states)])
                 
             elif cmd == 'reset':
                 remote.send([env.reset() for env in envs])
@@ -459,7 +465,7 @@ def shareworker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
                 break
             elif cmd == 'get_spaces':
                 remote.send(CloudpickleWrapper((envs[0].observation_space, envs[0].share_observation_space, envs[0].action_space,\
-                                                envs[0].discrete_action_space,envs[0].continuous_action_space, envs[0].discrete_embedding_space, envs[0].continuous_embedding_space)))
+                                                envs[0].discrete_action_space,envs[0].continuous_action_space, envs[0].discrete_embedding_space, envs[0].continuous_embedding_space, envs[0].rnn_actor_space)))
             elif cmd == 'get_num_agents':
                 remote.send(CloudpickleWrapper((getattr(envs[0], "num_agents", 1))))
             else:
@@ -491,14 +497,14 @@ class ShareSubprocHybridVecEnv(SubprocHybridVecEnv, ShareHybridVecEnv):
         for remote in self.work_remotes:
             remote.close()
 
-        self.remotes[0].send(('get_spaces', None,None,None,None))
-        observation_space, share_observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space= self.remotes[0].recv().x
-        ShareHybridVecEnv.__init__(self, nenvs, observation_space, share_observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space)
+        self.remotes[0].send(('get_spaces', None,None,None,None,None))
+        observation_space, share_observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space, rnn_actor_space= self.remotes[0].recv().x
+        ShareHybridVecEnv.__init__(self, nenvs, observation_space, share_observation_space, action_space, discrete_action_space, continuous_action_space, discrete_embedding_space, continuous_embedding_space, rnn_actor_space)
 
-        self.remotes[0].send(('get_num_agents', None,None,None,None))
+        self.remotes[0].send(('get_num_agents', None,None,None,None,None))
         self.num_agents = self.remotes[0].recv().x
 
-    def step_async(self, pre_obss, pre_share_obss, actions, action_rep):
+    def step_async(self, pre_obss, pre_share_obss, actions, rnn_states, action_rep):
         self._assert_not_closed()
         if pre_obss is None:
             pre_obss = np.zeros((self.nremotes, self.num_agents, get_shape_from_space(self.observation_space)[0]))
@@ -507,9 +513,10 @@ class ShareSubprocHybridVecEnv(SubprocHybridVecEnv, ShareHybridVecEnv):
         actions = np.array_split(actions, self.nremotes)
         pre_obss = np.array_split(pre_obss, self.nremotes)
         pre_share_obss = np. array_split(pre_share_obss, self.nremotes)
+        rnn_states = np.array_split(rnn_states, self.nremotes)
 
-        for remote, pre_obs, pre_share_obs, action in zip(self.remotes, pre_obss, pre_share_obss, actions):
-            remote.send(('step', pre_obs, pre_share_obs, action, action_rep))
+        for remote, pre_obs, pre_share_obs, action, rnn_state in zip(self.remotes, pre_obss, pre_share_obss, actions, rnn_states):
+            remote.send(('step', pre_obs, pre_share_obs, action, rnn_state, action_rep))
         self.waiting = True
 
     def step_wait(self):
@@ -524,7 +531,7 @@ class ShareSubprocHybridVecEnv(SubprocHybridVecEnv, ShareHybridVecEnv):
     def reset(self):
         self._assert_not_closed()
         for remote in self.remotes:
-            remote.send(('reset', None,None,None,None))
+            remote.send(('reset', None,None,None,None,None))
         results = [remote.recv() for remote in self.remotes]
         results = self._flatten_series(results)
         obs, share_obs = zip(*results)
@@ -535,15 +542,15 @@ class ShareSubprocHybridVecEnv(SubprocHybridVecEnv, ShareHybridVecEnv):
             for remote in self.remotes:
                 remote.recv()
         for remote in self.remotes:
-            remote.send(('close', None,None,None,None))
+            remote.send(('close', None,None,None,None,None))
         for p in self.ps:
             p.join()
     
-    def step(self, obs, share_obs, actions, action_representation):
+    def step(self, obs, share_obs, actions, rnn_states, action_representation):
         """
         Step the environments synchronously.
 
         This is available for backwards compatibility.
         """
-        self.step_async(obs, share_obs, actions, action_representation)
+        self.step_async(obs, share_obs, actions, rnn_states, action_representation)
         return self.step_wait()

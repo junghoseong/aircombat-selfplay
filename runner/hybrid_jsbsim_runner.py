@@ -25,6 +25,8 @@ class HybridJSBSimRunner(Runner):
         self.continuous_action_space = self.envs.continuous_action_space
         self.discrete_embedding_space = self.envs.discrete_embedding_space
         self.continuous_embedding_space = self.envs.continuous_embedding_space
+        self.rnn_actor_space = self.envs.rnn_actor_space
+
         self.num_agents = self.envs.num_agents
         self.use_selfplay = self.all_args.use_selfplay  # type: bool
         self.mutual_support = self.all_args.mutual_support
@@ -39,7 +41,7 @@ class HybridJSBSimRunner(Runner):
             raise NotImplementedError
         self.policy = Policy(self.all_args, self.obs_space, self.share_obs_space, self.all_continuous_act_space, device=self.device)
         self.trainer = Trainer(self.all_args, device=self.device)
-        self.action_representation = Action_representation(self.all_args,self.obs_space,self.share_obs_space,self.discrete_action_space,self.continuous_action_space, self.continuous_embedding_space, device = self.device)
+        self.action_representation = Action_representation(self.all_args,self.obs_space,self.rnn_actor_space,self.discrete_action_space,self.continuous_action_space, self.continuous_embedding_space, device = self.device)
         
         if self.mutual_support: #MI can be stimulated in the latent space?
             from algorithms.utils.discriminator import Discriminator
@@ -98,10 +100,11 @@ class HybridJSBSimRunner(Runner):
             for step in range(self.buffer_size - 1):
                 # Sample actions
                 values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step) #latent action
+                
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
+                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation)
                     continue # Skip further processing for the first step
                 
                 next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation) #action is processed in 'tasks'
@@ -177,13 +180,14 @@ class HybridJSBSimRunner(Runner):
             for step in range(self.buffer_size - 1):
                 # Sample actions
                 values, actions, action_log_probs, rnn_states_actor, rnn_states_critic = self.collect(step)
+                #print("rnn_states_actor",rnn_states_actor.shape)
 
                 # Initialize the state if it is the first step
                 if obs is None and share_obs is None:
-                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infors = self.envs.step(obs,share_obs,actions,self.action_representation)
+                    obs, share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,rnn_states_actor, self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,self.action_representation)
+                next_obs, next_share_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,share_obs,actions,rnn_states_actor, self.action_representation)
                 
                 if self.mutual_support:
                     # Compute intrinsic rewards based on the current state, full parameters

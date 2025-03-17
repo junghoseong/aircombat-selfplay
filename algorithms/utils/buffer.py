@@ -834,6 +834,7 @@ class SharedHybridReplayBuffer(Buffer):
         # Newly added: Next time-step observations
         next_obs_batch = self.obs[1:]  # Corresponding to obs[t+1]
         next_share_obs_batch = self.share_obs[1:]
+        next_rnn_states_actor_batch = np.squeeze(self.rnn_states_actor[1:], axis=3)
 
         # Extract data shape and shuffle along the first dimension
         max_buffer_size, rollout_threads, agent_num, _ = obs_batch.shape
@@ -858,6 +859,7 @@ class SharedHybridReplayBuffer(Buffer):
             masks_batch_sample = masks_batch[indices, :, :, :]
             active_masks_batch_sample = active_masks_batch[indices, :, :, :]
             rnn_states_actor_batch_sample = rnn_states_actor_batch[indices, :, :, :]
+            next_rnn_states_actor_batch_sample = next_rnn_states_actor_batch[indices, :, :, :]
 
             # Yield each mini-batch
             yield (
@@ -872,5 +874,6 @@ class SharedHybridReplayBuffer(Buffer):
                 continuous_embeddings_batch_sample,
                 masks_batch_sample,
                 active_masks_batch_sample,
-                rnn_states_actor_batch_sample
+                rnn_states_actor_batch_sample,
+                next_rnn_states_actor_batch_sample
             )

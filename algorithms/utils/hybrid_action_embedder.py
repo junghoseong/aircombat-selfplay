@@ -89,7 +89,7 @@ class Action_representation(nn.Module):
     def __init__(self,
                  args,
                  obs_space,
-                 share_obs_space,
+                 rnn_actor_space,
                  discrete_action_space,
                  continuous_action_space,
                  #reduced_action_dim=2,
@@ -103,7 +103,7 @@ class Action_representation(nn.Module):
         self.tpdv = dict(dtype=torch.float32, device = self.device)
         self.parameter_action_dim = get_shape_from_space(continuous_action_space)[0]
         #self.reduced_action_dim = reduced_action_dim
-        self.state_dim = get_shape_from_space(obs_space)[0] + get_shape_from_space(share_obs_space)[0]
+        self.state_dim = get_shape_from_space(obs_space)[0] + rnn_actor_space.shape[1]
         #print("self.state_dim",self.state_dim)
         self.discrete_action_dim = get_shape_from_space(discrete_action_space)[0]
         #print("self.discrete_action_dim",self.discrete_action_dim)
@@ -138,10 +138,10 @@ class Action_representation(nn.Module):
             # For each chunk of the sequence data
             for sample in data_generator:
                 obs_batch, next_obs_batch, share_obs_batch, next_share_obs_batch, discrete_actions_batch, continuous_actions_batch,\
-                      actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                      actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch, next_rnn_states_actor_batch= sample
                 
-                state_pre = np.concatenate((obs_batch, share_obs_batch), axis = -1)
-                state_after = np.concatenate((next_obs_batch,next_share_obs_batch), axis = -1)
+                state_pre = np.concatenate((obs_batch, rnn_states_actor_batch), axis = -1)
+                state_after = np.concatenate((next_obs_batch,next_rnn_states_actor_batch), axis = -1)
 
                 #print("state_pre",state_pre.shape)
                 #print("state_after",state_after.shape)

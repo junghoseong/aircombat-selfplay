@@ -559,22 +559,26 @@ class Scenario2_Hybrid(Scenario2_NvN):
     def num_agents(self) -> int:
         return 4        
     
+    
     def load_action_space(self):
         # altitude control[-0.1,0.1] + heading control[-pi/6,pi/6] + velocity control[-0.05,0.05] + shoot control
         #self.action_space = spaces.Tuple([spaces.MultiDiscrete([3, 5, 3]), spaces.MultiDiscrete([2, 2, 2, 2])])
         self.action_space = spaces.Box(low = np.array([-1,-1,-1,-1,-1,-1,-0.5,-0.5,-0.5,-0.5]), \
                                         high = np.array([1,1,1,1,1,1,1.5,1.5,1.5,1.5]),\
-                                        dtype = np.float64)
+                                        dtype = np.float64)    #Front 6 -> continuous embedding, Back 4 -> discrete actions
         self.discrete_action_space = spaces.MultiDiscrete([2,2,2,2])
         self.continuous_action_space = spaces.Box(low = np.array([-0.1,-np.pi/6,-0.05]),high = np.array([0.1,np.pi/6,0.05]),dtype = np.float64)
         self.discrete_embedding_space = spaces.MultiDiscrete([2,2,2,2])
         self.continuous_embedding_space = spaces.Box(low = -np.ones(6), high = np.ones(6),dtype = np.float64)
+        self.rnn_actor_space = np.zeros((1,128))
 
-    def normalize_action(self, env, agent_id, obs, share_obs, action, action_representation): #must make actionrepresentation to come here
+    def normalize_action(self, env, agent_id, obs, rnn_states, action, action_representation): #must make actionrepresentation to come here
         """Convert high-level action into low-level action.
         """
         self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])
-        state = np.concatenate((obs, np.array(share_obs[0]).flatten()))
+        state = np.concatenate((obs, np.array(rnn_states[list(env.agents.keys()).index(agent_id)]).flatten()))
+        
+        #must be np.concatenate((obs, rnn_states[agent_id]))
 
 
         return HierarchicalMultipleCombatTask.normalize_action(self, env, agent_id, \

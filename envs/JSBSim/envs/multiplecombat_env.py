@@ -37,6 +37,10 @@ class MultipleCombatEnv(BaseEnv):
     @property
     def discrete_embedding_space(self):
         return self.task.discrete_embedding_space
+    
+    @property
+    def rnn_actor_space(self):
+        return self.task.rnn_actor_space
 
     def load_task(self):
         taskname = getattr(self.config, 'task', None)
@@ -134,7 +138,7 @@ class MultipleCombatEnv(BaseEnv):
             sim.reload(init_states[idx])
         self._tempsims.clear()
 
-    def step(self, obs:np.ndarray, share_obs:np.ndarray, action: np.ndarray,action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
+    def step(self, obs:np.ndarray, share_obs:np.ndarray, action: np.ndarray, rnn_states: np.ndarray, action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Run one timestep of the environment's dynamics. When end of
         episode is reached, you are responsible for calling `reset()`
         to reset this environment's observation. Accepts an action and
@@ -159,7 +163,7 @@ class MultipleCombatEnv(BaseEnv):
         continuous_actions={}
         discrete_actions={}
         for agent_id in self.agents.keys():
-            a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,share_obs, action[agent_id],action_representation)
+            a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
             #print("cont_action", cont_action)
             continuous_actions[agent_id] = cont_action
