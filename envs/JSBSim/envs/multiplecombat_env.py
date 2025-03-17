@@ -2,8 +2,8 @@ import numpy as np
 from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
-from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2_Hybrid
-from ..tasks import Scenario2, Scenario2_curriculum, Scenario2_NvN, Scenario2_NvN_curriculum, Scenario2_RWR, Scenario2_RWR_curriculum
+from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask
+from ..tasks import Scenario2, Scenario2_curriculum, Scenario2_NvN, Scenario2_NvN_curriculum, Scenario2_RWR, Scenario2_RWR_curriculum, Scenario2_Hybrid
 from ..tasks import Scenario3, Scenario3_curriculum, Scenario3_NvN, Scenario3_NvN_curriculum, Scenario3_RWR, Scenario3_RWR_curriculum
 from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
