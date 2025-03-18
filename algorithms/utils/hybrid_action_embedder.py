@@ -104,7 +104,7 @@ class Action_representation(nn.Module):
         self.parameter_action_dim = get_shape_from_space(continuous_action_space)[0]
         #self.reduced_action_dim = reduced_action_dim
         self.state_dim = get_shape_from_space(obs_space)[0] + rnn_actor_space.shape[1]
-        print("self.state_dim",self.state_dim)
+        #print("self.state_dim",self.state_dim)
         self.discrete_action_dim = get_shape_from_space(discrete_action_space)[0]
         #print("self.discrete_action_dim",self.discrete_action_dim)
         # Action embeddings to project the predicted action into original dimensions

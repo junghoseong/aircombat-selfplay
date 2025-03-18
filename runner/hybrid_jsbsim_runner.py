@@ -238,7 +238,6 @@ class HybridJSBSimRunner(Runner):
                     rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic= data
         dones = dones.squeeze(axis=-1)
         dones_env = np.all(dones, axis=-1)
-
         rnn_states_actor[dones_env == True] = np.zeros(((dones_env == True).sum(), *rnn_states_actor.shape[1:]), dtype=np.float32)
         rnn_states_critic[dones_env == True] = np.zeros(((dones_env == True).sum(), *rnn_states_critic.shape[1:]), dtype=np.float32)
 

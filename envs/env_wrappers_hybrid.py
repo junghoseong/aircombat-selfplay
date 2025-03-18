@@ -219,7 +219,7 @@ def worker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
         env_fn_wrappers (method): functions to create gym.Env instance.
     """
     def step_env(env, pre_obs, action,rnn_state, action_representation):
-        obs, reward, done, info = env.step(pre_obs, action, rnn_state, action_representation)
+        obs, reward, done, continuous_actions, discrete_actions, info = env.step(pre_obs, action, rnn_state, action_representation)
         if 'bool' in done.__class__.__name__:
             if done:
                 obs = env.reset()
@@ -231,7 +231,7 @@ def worker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
                 obs = env.reset()
         else:
             raise NotImplementedError("Unexpected type of done!")
-        return obs, reward, done, info
+        return obs, reward, done, continuous_actions, discrete_actions, info
 
     parent_remote.close()
     envs = [env_fn_wrapper() for env_fn_wrapper in env_fn_wrappers.x]

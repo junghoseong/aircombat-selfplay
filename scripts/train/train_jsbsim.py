@@ -52,7 +52,7 @@ def make_train_env(all_args):
         if all_args.n_rollout_threads == 1:
             return DummyHybridVecEnv([get_env_fn(0)])
         else:
-            return SubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_eval_rollout_threads)])
+            return SubprocHybridVecEnv([get_env_fn(i) for i in range(all_args.n_rollout_threads)])
     else:
         if all_args.n_rollout_threads == 1:
             return DummyVecEnv([get_env_fn(0)])

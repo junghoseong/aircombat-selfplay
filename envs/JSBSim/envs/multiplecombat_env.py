@@ -164,7 +164,8 @@ class MultipleCombatEnv(BaseEnv):
         action = self._unpack(action)
         continuous_actions={}
         discrete_actions={}
-        for agent_id in self.agents.keys():
+        for agent_id in self.agents.keys(): # does this take baseline agent action into account?
+            print(agent_id,self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation))
             a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
             #print("cont_action", cont_action)

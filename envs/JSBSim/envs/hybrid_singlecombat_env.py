@@ -158,13 +158,39 @@ class HybridSingleCombatEnv(BaseEnv):
         action = self._unpack(action)
         continuous_actions={}
         discrete_actions={}
+        rewards = {}
+        dones = {}
+        # if not self.config.use_baseline:
         for agent_id in self.agents.keys():
             #print(self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation))
             a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
             #print("cont_action", cont_action)
             continuous_actions[agent_id] = cont_action
-            discrete_actions[agent_id] = self.task._shoot_action[agent_id][0]
+            discrete_actions[agent_id] = self.task._shoot_action[agent_id]
+
+            reward, info = self.task.get_reward(self, agent_id, info)
+            rewards[agent_id] = [reward]
+
+            done, info = self.task.get_termination(self, agent_id, info)
+            dones[agent_id] = [done]
+                
+        # else:
+        #     for agent_id in self.ego_ids:
+        #         a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation)
+        #         self.agents[agent_id].set_property_values(self.task.action_var, a_action)
+        #         continuous_actions[agent_id] = cont_action
+        #         discrete_actions[agent_id] = self.task._shoot_action[agent_id][0]
+        #         reward, info = self.task.get_reward(self, agent_id, info)
+        #         rewards[agent_id] = [reward]
+
+        #         done, info = self.task.get_termination(self, agent_id, info)
+        #         dones[agent_id] = [done]
+
+
+        #     for agent_id in self.enm_ids:
+        #         a_action = self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation)
+        #         self.agents[agent_id].set_property_values(self.task.action_var, a_action)
             
         # run simulation
         for _ in range(self.agent_interaction_steps):
@@ -187,21 +213,7 @@ class HybridSingleCombatEnv(BaseEnv):
 
         obs = self.get_obs()
 
-        rewards = {}
-        for agent_id in self.agents.keys():
-            reward, info = self.task.get_reward(self, agent_id, info)
-            rewards[agent_id] = [reward]
-        ego_reward = np.mean([rewards[ego_id] for ego_id in self.ego_ids])
-        enm_reward = np.mean([rewards[enm_id] for enm_id in self.enm_ids])
-        for ego_id in self.ego_ids:
-            rewards[ego_id] = [ego_reward]
-        for enm_id in self.enm_ids:
-            rewards[enm_id] = [enm_reward]
-
-        dones = {}
-        for agent_id in self.agents.keys():
-            done, info = self.task.get_termination(self, agent_id, info)
-            dones[agent_id] = [done]
+        
 
         return self._pack(obs), self._pack(rewards), self._pack(dones),\
               self._pack(continuous_actions), self._pack(discrete_actions), info

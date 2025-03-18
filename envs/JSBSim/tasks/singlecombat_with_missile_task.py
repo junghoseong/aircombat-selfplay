@@ -263,7 +263,8 @@ class HierarchialHybridSingleCombatTask(HierarchicalSingleCombatTask): ##for act
     def normalize_action(self, env, agent_id, obs, rnn_states, action, action_representation): #must make actionrepresentation to come here
         """Convert high-level action into low-level action.
         """
-        self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:])
+        self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:]).reshape(-1)
+        #print("shoot action",self._shoot_action[agent_id])
         state = np.concatenate((obs, np.array(rnn_states[list(env.agents.keys()).index(agent_id)]).flatten()))
         
         #must be np.concatenate((obs, rnn_states[agent_id]))
