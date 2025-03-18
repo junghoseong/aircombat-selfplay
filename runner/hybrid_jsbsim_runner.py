@@ -323,7 +323,7 @@ class HybridJSBSimRunner(Runner):
                 eval_actions = np.concatenate((eval_actions, eval_opponent_actions), axis=1)
 
             # Obser reward and next obs
-            eval_obs, eval_rewards, eval_dones, continuous_actions, discrete_actions, eval_infos = self.eval_envs.step(eval_obs,eval_actions,self.action_representation)
+            eval_obs, eval_rewards, eval_dones, continuous_actions, discrete_actions, eval_infos = self.eval_envs.step(eval_obs,eval_actions,eval_rnn_states,self.action_representation)
 
             # [Selfplay] get ego reward
             if self.use_selfplay:
