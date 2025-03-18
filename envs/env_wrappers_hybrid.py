@@ -170,21 +170,33 @@ class DummyHybridVecEnv(HybridVecEnv):
     def step_wait(self):
         ar = self.action_representations
         results = [env.step(o,a,rnn,ar) for (o, a,rnn, env) in zip(self.pre_obss, self.actions,self.rnn_actor_states, self.envs)]
-        obss, rewards, dones, infos = map(list, zip(*results))
-        for (i, done) in enumerate(dones):
-            if 'bool' in done.__class__.__name__:
-                if done:
-                    obss[i] = self.envs[i].reset()
-            elif isinstance(done, (list, tuple, np.ndarray)):
-                if np.all(done):
-                    obss[i] = self.envs[i].reset()
-            elif isinstance(done, dict):
-                if np.all(list(done.values())):
-                    obss[i] = self.envs[i].reset()
-            else:
-                raise NotImplementedError("Unexpected type of done!")
-        self.actions = None
-        return self._flatten(obss), self._flatten(rewards), self._flatten(dones), np.array(infos)
+        obs, reward, done, continuous_actions, discrete_actions, info  = map(list, zip(*results))
+        if 'bool' in done.__class__.__name__:
+            if done:
+                obs = env.reset()
+        elif isinstance(done, (list, tuple, np.ndarray)):
+            if np.all(done):
+                obs = env.reset()
+        elif isinstance(done, dict):
+            if np.all(list(done.values())):
+                obs = env.reset()
+        else:
+            raise NotImplementedError("Unexpected type of done!")
+        return obs, reward, done, continuous_actions, discrete_actions, info
+        # for (i, done) in enumerate(dones):
+        #     if 'bool' in done.__class__.__name__:
+        #         if done:
+        #             obss[i] = self.envs[i].reset()
+        #     elif isinstance(done, (list, tuple, np.ndarray)):
+        #         if np.all(done):
+        #             obss[i] = self.envs[i].reset()
+        #     elif isinstance(done, dict):
+        #         if np.all(list(done.values())):
+        #             obss[i] = self.envs[i].reset()
+        #     else:
+        #         raise NotImplementedError("Unexpected type of done!")
+        # self.actions = None
+        # return self._flatten(obss), self._flatten(rewards), self._flatten(dones), np.array(infos)
 
     def reset(self):
         obss = [env.reset() for env in self.envs]
