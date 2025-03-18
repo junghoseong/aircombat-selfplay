@@ -153,6 +153,7 @@ class HybridSingleCombatEnv(BaseEnv):
         """
         self.current_step += 1
         info = {"current_step": self.current_step}
+        # print(info, self.agents[self.ego_ids[0]].get_position(), self.agents[self.enm_ids[0]].get_position())
 
         # apply actions
         action = self._unpack(action)

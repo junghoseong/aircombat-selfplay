@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Union, List
 from .ppo_policy import PPOPolicy
-from ..utils.buffer import ReplayBuffer
+from ..utils.buffer import HybridReplayBuffer
 from ..utils.utils import check, get_gard_norm
 
 class PPOTrainer():
@@ -74,7 +74,7 @@ class PPOTrainer():
 
         return policy_loss, value_loss, policy_entropy_loss, ratio, actor_grad_norm, critic_grad_norm
 
-    def train(self, policy: PPOPolicy, buffer: Union[ReplayBuffer, List[ReplayBuffer]]):
+    def train(self, policy: PPOPolicy, buffer: HybridReplayBuffer):
         train_info = {}
         train_info['value_loss'] = 0
         train_info['policy_loss'] = 0
@@ -85,7 +85,8 @@ class PPOTrainer():
 
         for _ in range(self.ppo_epoch):
             if self.use_recurrent_policy:
-                data_generator = ReplayBuffer.recurrent_generator(buffer, self.num_mini_batch, self.data_chunk_length)
+                print(buffer,self.num_mini_batch,self.data_chunk_length)
+                data_generator = buffer.recurrent_generator(buffer.advantages, self.num_mini_batch, self.data_chunk_length)
             else:
                 raise NotImplementedError
 

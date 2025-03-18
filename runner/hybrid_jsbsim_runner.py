@@ -360,13 +360,14 @@ class HybridJSBSimRunner(Runner):
     @torch.no_grad()
     def render(self):
         logging.info("\nStart render ...")
-        self.render_opponent_index = self.all_args.render_opponent_index
+        
         render_episode_rewards = 0
         render_obs = self.envs.reset()
         render_masks = np.ones((1, *self.buffer.masks.shape[2:]), dtype=np.float32)
         render_rnn_states = np.zeros((1, *self.buffer.rnn_states_actor.shape[2:]), dtype=np.float32)
         self.envs.render(mode='txt', filepath=f'{self.run_dir}/{self.experiment_name}.txt.acmi')
         if self.use_selfplay:
+            self.render_opponent_index = self.all_args.render_opponent_index
             policy_idx = self.render_opponent_index
             self.eval_opponent_policy.actor.load_state_dict(torch.load(str(self.model_dir) + f'/actor_{policy_idx}.pt'))
             self.eval_opponent_policy.prep_rollout()

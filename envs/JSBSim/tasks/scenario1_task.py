@@ -402,56 +402,58 @@ class Scenario1_Hybrid(Scenario1, HierarchialHybridSingleCombatTask):
     
     def step(self, env):
         SingleCombatTask.step(self, env)
-        if not self.use_baseline:
-            for agent_id, agent in env.agents.items():
-                # [RL-based missile launch with limited condition]         
-                shoot_flag_gun = agent.is_alive and self._shoot_action[agent_id][0] and self.remaining_gun[agent_id] > 0
-                shoot_flag_AIM_9M = agent.is_alive and self._shoot_action[agent_id][1] and self.remaining_missiles_AIM_9M[agent_id] > 0
-                shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
-                shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][3] and self.remaining_chaff_flare[agent_id] > 0
+        for agent_id, agent in env.agents.items():
+            # [RL-based missile launch with limited condition]         
+            shoot_flag_gun = agent.is_alive and self._shoot_action[agent_id][0] and self.remaining_gun[agent_id] > 0
+            shoot_flag_AIM_9M = agent.is_alive and self._shoot_action[agent_id][1] and self.remaining_missiles_AIM_9M[agent_id] > 0
+            shoot_flag_AIM_120B = agent.is_alive and self._shoot_action[agent_id][2] and self.remaining_missiles_AIM_120B[agent_id] > 0
+            shoot_flag_chaff_flare = agent.is_alive and self._shoot_action[agent_id][3] and self.remaining_chaff_flare[agent_id] > 0
 
-                if shoot_flag_gun and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage gun duration
-                    avail, enemy = self.a2a_launch_available(agent, agent_id, env)
-                    if avail[0]:
-                        target = self.get_target(agent)
-                        enemy.bloods -= 5
-                        print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
-                        self.remaining_gun[agent_id] -= 1
-                
-                if shoot_flag_AIM_120B and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage long-range missile duration
-                    avail, _ = self.a2a_launch_available(agent, agent_id, env)
-                    if avail[1]:
-                        new_missile_uid = agent_id + str(self.remaining_missiles_AIM_120B[agent_id])
-                        target = self.get_target(agent)
-                        self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
-                            AIM_120B.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-120B"))
-                        self.remaining_missiles_AIM_120B[agent_id] -= 1
+            if shoot_flag_gun and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage gun duration
+                avail, enemy = self.a2a_launch_available(agent, agent_id, env)
+                if avail[0]:
+                    target = self.get_target(agent)
+                    enemy.bloods -= 50
+                    print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
+                    self.remaining_gun[agent_id] -= 1
+            
+            if shoot_flag_AIM_120B and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage long-range missile duration
+                avail, _ = self.a2a_launch_available(agent, agent_id, env)
+                if avail[1]:
+                    new_missile_uid = agent_id + str(self.remaining_missiles_AIM_120B[agent_id])
+                    target = self.get_target(agent)
+                    self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
+                        AIM_120B.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-120B"))
+                    self.remaining_missiles_AIM_120B[agent_id] -= 1
+                    print("AIM-120B launched, ", "left missiles", self.remaining_missiles_AIM_120B[agent_id])
 
-                if shoot_flag_AIM_9M and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage middle-range missile duration
-                    avail, _ = self.a2a_launch_available(agent, agent_id, env)
-                    if avail[2]:
-                        new_missile_uid = agent_id + str(self.remaining_missiles_AIM_9M[agent_id])
-                        target = self.get_target(agent)
-                        self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
-                            AIM_9M.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-9M"))
-                        self.remaining_missiles_AIM_9M[agent_id] -= 1
-                
-                if shoot_flag_chaff_flare and (self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # valid condition for chaff: can be bursted after the end of last chaff
-                    for missiles in env._tempsims.values():
-                        if missiles.target_aircraft == agent and missiles.target_distance < 1000:
-                            new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
-                            self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
-                                ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
-                            self.remaining_chaff_flare[agent_id] -= 1
+            if shoot_flag_AIM_9M and (self.agent_last_shot_missile[agent_id] == 0 or self.agent_last_shot_missile[agent_id].is_done): # manage middle-range missile duration
+                avail, _ = self.a2a_launch_available(agent, agent_id, env)
+                if avail[2]:
+                    new_missile_uid = agent_id + str(self.remaining_missiles_AIM_9M[agent_id])
+                    target = self.get_target(agent)
+                    self.agent_last_shot_missile[agent_id] = env.add_temp_simulator(
+                        AIM_9M.create(parent=agent, target=target, uid=new_missile_uid, missile_model="AIM-9M"))
+                    self.remaining_missiles_AIM_9M[agent_id] -= 1
+                    print("AIM-9M launched, ", "left missiles", self.remaining_missiles_AIM_9M[agent_id])
+            
+            if shoot_flag_chaff_flare and (self.agent_last_shot_chaff[agent_id] == 0 or self.agent_last_shot_chaff[agent_id].is_done): # valid condition for chaff: can be bursted after the end of last chaff
+                for missiles in env._tempsims.values():
+                    if missiles.target_aircraft == agent and missiles.target_distance < 1000:
+                        new_chaff_uid = agent_id + str(self.remaining_chaff_flare[agent_id] + 10)
+                        self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
+                            ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
+                        self.remaining_chaff_flare[agent_id] -= 1
     def get_termination(self, env, agent_id, info={}):
         done = False
         success = True
         for condition in self.termination_conditions:
             d, s, info = condition.get_termination(self, env, agent_id, info)
+            #print(d,s,info)
             done = done or d
             success = success and s
             if done:
                 if env.agents[agent_id].color == 'Blue': 
-                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
+                    print(info)
                 break
         return done, info

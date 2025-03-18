@@ -5,7 +5,7 @@ sim_freq: 60
 agent_interaction_steps: 6 # step 1 / 60s
 
 # termination config
-max_steps: 9000 #90000             # episode length: 900s (15m)
+max_steps: 3000 #90000             # episode length: 900s (15m)
 altitude_limit: 2500
 acceleration_limit_x: 10.0
 acceleration_limit_y: 10.0
@@ -35,7 +35,7 @@ aircraft_configs: {
     init_state: {
       ic_h_sl_ft: 20000,
       ic_lat_geod_deg: 60.1,
-      ic_long_gc_deg: 120.5,
+      ic_long_gc_deg: 120.1,
       ic_psi_true_deg: 180.0,
       ic_u_fps: 800.0,
     },

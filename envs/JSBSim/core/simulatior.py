@@ -496,6 +496,7 @@ class MissileSimulator(BaseSimulator):
 
     def launch(self, parent: AircraftSimulator):
         # inherit kinetic parameters from parent aricraft
+        #print("Missile launched!") # for debug
         self.parent_aircraft = parent
         self.parent_aircraft.launch_missiles.append(self)
         self._geodetic[:] = parent.get_geodetic()
