@@ -1,6 +1,5 @@
 from .reward_function_base import BaseRewardFunction
 
-
 class EventDrivenReward(BaseRewardFunction):
     """
     EventDrivenReward
@@ -31,7 +30,7 @@ class EventDrivenReward(BaseRewardFunction):
         #     reward -= 200
         done = False
         success = True
-        for condition in self.termination_conditions:
+        for condition in task.termination_conditions:
             d, s, info = condition.get_termination(self, env, agent_id, info)
             done = done or d
             success = success and s
