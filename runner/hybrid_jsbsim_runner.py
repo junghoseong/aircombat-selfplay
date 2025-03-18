@@ -97,10 +97,10 @@ class HybridJSBSimRunner(Runner):
 
                 # Initialize the state if it is the first step
                 if obs is None:
-                    obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,self.action_representation)
+                    obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,rnn_states_actor,self.action_representation)
                     continue # Skip further processing for the first step
                 
-                next_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,self.action_representation) #action is processed in 'tasks'
+                next_obs, rewards, dones, continuous_actions, discrete_actions, infos = self.envs.step(obs,actions,rnn_states_actor,self.action_representation) #action is processed in 'tasks'
                 
                 discrete_embeddings = actions[:,:,-4:]
                 continuous_embeddings = actions[:,:,:-4]

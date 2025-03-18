@@ -443,3 +443,15 @@ class Scenario1_Hybrid(Scenario1, HierarchialHybridSingleCombatTask):
                             self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                                 ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
                             self.remaining_chaff_flare[agent_id] -= 1
+    def get_termination(self, env, agent_id, info={}):
+        done = False
+        success = True
+        for condition in self.termination_conditions:
+            d, s, info = condition.get_termination(self, env, agent_id, info)
+            done = done or d
+            success = success and s
+            if done:
+                if env.agents[agent_id].color == 'Blue': 
+                    print("current winning rate is {}/{}, curriculum is {}'th stage".format(sum(self.record), len(self.record), self.curriculum_angle))
+                break
+        return done, info

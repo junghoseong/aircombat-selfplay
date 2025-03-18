@@ -213,7 +213,5 @@ class HybridSingleCombatEnv(BaseEnv):
 
         obs = self.get_obs()
 
-        
-
         return self._pack(obs), self._pack(rewards), self._pack(dones),\
               self._pack(continuous_actions), self._pack(discrete_actions), info
