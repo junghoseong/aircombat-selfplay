@@ -502,7 +502,14 @@ class SharedReplayBuffer(ReplayBuffer):
             )
 
 class HybridReplayBuffer(Buffer):
+    @staticmethod
+    def _flatten(T: int, N: int, x: np.ndarray):
+        return x.reshape(T * N, *x.shape[2:])
 
+    @staticmethod
+    def _cast(x: np.ndarray):
+        return x.transpose(1, 2, 0, *range(3, x.ndim)).reshape(-1, *x.shape[3:])
+    
     def __init__(self, args, num_agents, obs_space, discrete_act_space, continuous_act_space, all_continuous_act_space, discrete_emb_space, continuous_emb_space):
         # env config
         self.num_agents = num_agents
