@@ -21,8 +21,8 @@ aircraft_configs: {
     color: Blue,
     model: f16,
     init_state: {
-      ic_long_gc_deg: 120.0,
-      ic_lat_geod_deg: 60.0,
+      ic_long_gc_deg: 119.9,
+      ic_lat_geod_deg: 59.9,
       ic_h_sl_ft: 20000,
       ic_psi_true_deg: 0,
       ic_u_fps: 800.0,
