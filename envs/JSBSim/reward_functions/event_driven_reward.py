@@ -28,6 +28,7 @@ class EventDrivenReward(BaseRewardFunction):
         #     reward -= 200
         # elif env.agents[agent_id].is_crash:
         #     reward -= 200
+        info = {}
         done = False
         success = True
         for condition in task.termination_conditions:
