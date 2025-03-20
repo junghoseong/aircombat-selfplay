@@ -265,7 +265,7 @@ class HierarchialHybridSingleCombatTask(HierarchicalSingleCombatTask): ##for act
         """
         self._shoot_action[agent_id] = action_representation.select_discrete_action(action[-4:]).reshape(-1)
         #print("shoot action",self._shoot_action[agent_id])
-        state = np.concatenate((obs, np.array(rnn_states[list(env.agents.keys()).index(agent_id)]).flatten()))
+        state = np.concatenate((obs, rnn_states[list(env.agents.keys()).index(agent_id)].flatten()))
         
         #must be np.concatenate((obs, rnn_states[agent_id]))
 
