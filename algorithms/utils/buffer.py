@@ -646,6 +646,7 @@ class HybridReplayBuffer(Buffer):
             self.active_masks[self.step + 1] = active_masks.copy()
         if available_actions is not None:
             pass
+        del obs, discrete_actions, continuous_actions, all_continuous_actions, discrete_embeddings, continuous_embeddings, rewards, masks, action_log_probs, value_preds, rnn_states_actor, rnn_states_critic, bad_masks, active_masks, available_actions
 
     def after_update(self):
         self.active_masks[0] = self.active_masks[-1].copy()
