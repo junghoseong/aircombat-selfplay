@@ -170,6 +170,7 @@ class Action_representation(nn.Module):
         num_updates = self.ppo_epoch * self.num_mini_batch
         for k in train_info.keys():
             train_info[k] /= num_updates
+        del data_generator
 
         return train_info
 
@@ -188,11 +189,7 @@ class Action_representation(nn.Module):
         return vae_loss, recon_loss_d, recon_loss_c, KL_loss
 
     def train_step(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr=1e-4):
-        state = s1
-        action_d = a_d
-        action_c = a_c
-        next_state = s2
-        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state,
+        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(s1, a_d, a_c, s2,
                                                                   sup_batch_size)
 
         #self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=embed_lr)

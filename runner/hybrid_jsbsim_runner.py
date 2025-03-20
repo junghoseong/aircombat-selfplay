@@ -181,6 +181,7 @@ class HybridJSBSimRunner(Runner):
                 data = obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings\
                     , rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic
                 self.insert(data)
+                del data
                 
                 # Update the state for the next step
                 obs = next_obs
