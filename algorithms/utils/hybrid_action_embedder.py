@@ -166,7 +166,7 @@ class Action_representation(nn.Module):
                 continuous_actions_batch = torch.tensor(continuous_actions_batch).to(**self.tpdv)
                 state_after = torch.tensor(state_after).to(**self.tpdv)
 
-                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)  
+                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,1e-4)  
 
                 train_info['vae_total_loss'] += vae_loss
                 train_info['vae_dynamics_predictive_loss'] += recon_loss_d
