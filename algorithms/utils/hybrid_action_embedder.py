@@ -161,7 +161,12 @@ class Action_representation(nn.Module):
                 continuous_actions_batch = continuous_actions_batch.reshape(-1,continuous_actions_shape)
                 state_after = state_after.reshape(-1,state_after_shape)
 
-                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.unsupervised_loss(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)  
+                state_pre = torch.tensor(state_pre).to(**self.tpdv)
+                discrete_actions_batch = torch.tensor(discrete_actions_batch).to(**self.tpdv)
+                continuous_actions_batch = torch.tensor(continuous_actions_batch).to(**self.tpdv)
+                state_after = torch.tensor(state_after).to(**self.tpdv)
+
+                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)  
 
                 train_info['vae_total_loss'] += vae_loss
                 train_info['vae_dynamics_predictive_loss'] += recon_loss_d
@@ -189,11 +194,19 @@ class Action_representation(nn.Module):
         vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(s1, a_d, a_c, s2, sup_batch_size, embed_lr)
         return vae_loss, recon_loss_d, recon_loss_c, KL_loss
 
-    def train_step(self, s1, a_d, a_c, s2, sup_batch_size, embed_lr=1e-4):
-        vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(s1, a_d, a_c, s2,
-                                                                  sup_batch_size)
-
+    def train_step(self, state, action_d, action_c, next_state, embed_lr=1e-4):
+        #vae_loss, recon_loss_s, recon_loss_c, KL_loss = self.loss(state, action_d, action_c, next_state,0)
         #self.vae_optimizer = torch.optim.Adam(self.vae.parameters(), lr=embed_lr)
+        recon_c, recon_s, mean, std = self.vae(state, action_d, action_c)
+
+        recon_loss_s = F.mse_loss(recon_s, next_state, size_average=True) #dynamics predictive
+        recon_loss_c = F.mse_loss(recon_c, action_c, size_average=True)
+
+        KL_loss = -0.5 * (1 + torch.log(std.pow(2)) - mean.pow(2) - std.pow(2)).mean()
+
+        beta = 0.25
+        vae_loss = beta * recon_loss_s + recon_loss_c + 0.5 * KL_loss
+
         self.vae_optimizer.zero_grad()
         vae_loss.backward()
         self.vae_optimizer.step()
@@ -215,7 +228,7 @@ class Action_representation(nn.Module):
 
         # vae_loss = 0.25 * recon_loss_s + recon_loss_c + 0.5 * KL_loss
         # vae_loss = 0.25 * recon_loss_s + 2.0 * recon_loss_c + 0.5 * KL_loss  #best
-        beta = 2.0
+        beta = 0.25
         vae_loss = beta * recon_loss_s + 2.0 * recon_loss_c + 0.5 * KL_loss  ##beta should be adjusted here,
         # print("vae loss",vae_loss)
         # return vae_loss, 0.25 * recon_loss_s, recon_loss_c, 0.5 * KL_loss
