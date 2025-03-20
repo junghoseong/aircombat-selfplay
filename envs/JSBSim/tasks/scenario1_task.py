@@ -54,7 +54,7 @@ class Scenario1(HierarchicalSingleCombatTask, SingleCombatShootMissileTask):
         self._inner_rnn_states = {agent_id: np.zeros((1, 1, 128)) for agent_id in env.agents.keys()}
         self.remaining_missiles_AIM_9M = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
         self.remaining_missiles_AIM_120B = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}        
-        self.remaining_gun = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
+        self.remaining_gun = {agent_id: agent.num_missiles * 100 for agent_id, agent in env.agents.items()}
         self.remaining_chaff_flare = {agent_id: agent.num_missiles for agent_id, agent in env.agents.items()}
         
         SingleCombatShootMissileTask.reset(self, env)
@@ -413,7 +413,7 @@ class Scenario1_Hybrid(Scenario1, HierarchialHybridSingleCombatTask):
                 avail, enemy = self.a2a_launch_available(agent, agent_id, env)
                 if avail[0]:
                     target = self.get_target(agent)
-                    enemy.bloods -= 50
+                    enemy.bloods -= 5
                     print(f"gun shot, blood = {enemy.bloods}") # Implement damage of gun to enemies
                     self.remaining_gun[agent_id] -= 1
             
@@ -444,6 +444,7 @@ class Scenario1_Hybrid(Scenario1, HierarchialHybridSingleCombatTask):
                         self.agent_last_shot_chaff[agent_id] = env.add_chaff_simulator(
                             ChaffSimulator.create(parent=agent, uid=new_chaff_uid, chaff_model="CHF"))
                         self.remaining_chaff_flare[agent_id] -= 1
+                        print("chaff used")
     def get_termination(self, env, agent_id, info={}):
         done = False
         success = True
