@@ -5,6 +5,7 @@ import tracemalloc
 import numpy as np
 import torch
 import gymnasium as gym
+import gc
 
 from algorithms.utils.buffer import HybridReplayBuffer
 from .base_runner import Runner
@@ -192,6 +193,9 @@ class HybridJSBSimRunner(Runner):
             self.total_num_steps += self.buffer_size * self.n_rollout_threads
             logging.info("vae total loss is {}".format(train_infos_action["vae_total_loss"]))
             self.log_info(train_infos_action,self.total_num_steps)
+            gc.collect()
+            gc.set_debug(gc.DEBUG_LEAK)
+            logging.info(gc.garbage)
 
 
 
@@ -418,24 +422,27 @@ class HybridJSBSimRunner(Runner):
     def infer(self):
         snapshot = tracemalloc.take_snapshot()
         for idx, stat in enumerate(snapshot.statistics('lineno')[:5], 1):
-            logging.info(str(stat), flush=True)
+            logging.info(str(stat))
         # 메모리 사용량이 가장 많은 부분에 대한 정보를 상세히 출력한다
         traces = tracemalloc.take_snapshot().statistics('traceback')
         for stat in traces[:1]:
-            logging.info("memory_blocks=", stat.count, "size_MB=", stat.size / 1024 / 1024, flush=True)
+            logging.info("memory_blocks=", str(stat.count), "size_MB=", str(stat.size / 1024 / 1024))
             for line in stat.traceback.format():
-                logging.info(line, flush=True)
+                logging.info(str(line))
 
     def train(self):
         self.policy.prep_training()
-        logging.info("before ppo train\n")
-        self.infer()
+        # logging.info("before ppo train\n")
+        # self.infer()
         train_infos = self.trainer.train(self.policy, self.buffer)
-        logging.info("after ppo train\n")
-        self.infer()
+        # logging.info("after ppo train\n")
+        # self.infer()
         train_infos_action = self.action_representation.train(self.buffer)
-        logging.info("after vae train\n")
-        self.infer()
+        # logging.info("after vae train\n")
+        # self.infer()
+        gc.collect()
+        gc.set_debug(gc.DEBUG_LEAK)
+        logging.info(gc.garbage)
         self.buffer.after_update()
         return train_infos, train_infos_action
 
