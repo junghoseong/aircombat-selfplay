@@ -1,7 +1,7 @@
 import logging
 import time
 from typing import List
-
+import tracemalloc
 import numpy as np
 import torch
 import gymnasium as gym
@@ -18,6 +18,7 @@ def _t2n(x):
 class HybridJSBSimRunner(Runner):
 
     def load(self):
+        tracemalloc.start()
         self.obs_space = self.envs.observation_space
         self.all_continuous_act_space = self.envs.action_space
         self.discrete_action_space = self.envs.discrete_action_space
@@ -414,10 +415,27 @@ class HybridJSBSimRunner(Runner):
         render_infos['render_episode_reward'] = render_episode_rewards
         logging.info("render episode reward of agent: " + str(render_infos['render_episode_reward']))
         
+    def infer():
+        snapshot = tracemalloc.take_snapshot()
+        for idx, stat in enumerate(snapshot.statistics('lineno')[:5], 1):
+            print(str(stat), flush=True)
+        # 메모리 사용량이 가장 많은 부분에 대한 정보를 상세히 출력한다
+        traces = tracemalloc.take_snapshot().statistics('traceback')
+        for stat in traces[:1]:
+            print("memory_blocks=", stat.count, "size_kB=", stat.size / 1024, flush=True)
+            for line in stat.traceback.format():
+                print(line, flush=True)
+
     def train(self):
         self.policy.prep_training()
+        print("before ppo train\n")
+        self.infer()
         train_infos = self.trainer.train(self.policy, self.buffer)
+        print("after ppo train\n")
+        self.infer()
         train_infos_action = self.action_representation.train(self.buffer)
+        print("after vae train\n")
+        self.infer()
         self.buffer.after_update()
         return train_infos, train_infos_action
 

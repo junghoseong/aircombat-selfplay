@@ -4,6 +4,7 @@ from typing import Union, List
 from .ppo_policy import PPOPolicy
 from ..utils.buffer import HybridReplayBuffer
 from ..utils.utils import check, get_gard_norm
+import sys
 
 class PPOTrainer():
     def __init__(self, args, device=torch.device("cpu")):
@@ -85,7 +86,7 @@ class PPOTrainer():
 
         for _ in range(self.ppo_epoch):
             if self.use_recurrent_policy:
-                print(buffer,self.num_mini_batch,self.data_chunk_length)
+                # print(buffer,self.num_mini_batch,self.data_chunk_length)
                 data_generator = buffer.recurrent_generator(buffer.advantages, self.num_mini_batch, self.data_chunk_length)
             else:
                 raise NotImplementedError

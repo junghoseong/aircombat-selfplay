@@ -128,11 +128,12 @@ class Action_representation(nn.Module):
     def train(self, buffer):
         train_info = {}
         train_info['vae_total_loss'] = 0
-        train_info['vae_dynamics_predictive_loss'] = 0
+        train_info['vae_dynamics_predictive_loss'] = 0 #####Need to be eliminated
         train_info['vae_action_reconstruct_loss'] = 0
         train_info['vae_KL_loss'] = 0
 
         for _ in range(self.ppo_epoch):
+            
             data_generator = buffer.random_batch_generator(self.num_mini_batch, self.data_chunk_length)
 
             # For each chunk of the sequence data
