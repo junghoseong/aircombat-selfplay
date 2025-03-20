@@ -20,8 +20,6 @@ class VAE(nn.Module):
         # init_tensor = torch.rand(action_dim,
         #                          action_embedding_dim) * 2 - 1  # Don't initialize near the extremes.
         # self.embeddings = torch.nn.Parameter(init_tensor.type(float32), requires_grad=True)
-        product = list(itertools.product([0, 1], repeat=discrete_action_dim))
-        self.embeddings = torch.tensor(product, dtype=torch.int32)
         # print("self.embeddings", self.embeddings) 
         #print("state_dim + discrete_action_dim",state_dim + discrete_action_dim)
         self.e0_0 = nn.Linear(state_dim + discrete_action_dim, hidden_size)
@@ -109,6 +107,8 @@ class Action_representation(nn.Module):
         #print("self.discrete_action_dim",self.discrete_action_dim)
         # Action embeddings to project the predicted action into original dimensions
         # latent_dim=action_dim*2+parameter_action_dim*2
+        product = list(itertools.product([0, 1], repeat=self.discrete_action_dim))
+        self.embeddings = torch.tensor(product, dtype=torch.int32).to(**self.tpdv)
         self.latent_dim = get_shape_from_space(continuous_embedding_space)[0]
         self.embed_lr = embed_lr
         self.vae = VAE(state_dim=self.state_dim, discrete_action_dim=self.discrete_action_dim,
@@ -272,13 +272,13 @@ class Action_representation(nn.Module):
 
 
     def select_discrete_action(self, action):  #discrete action matching ####TODO : put this into ShootBernoulli. Then why use hybrid action?
-        embeddings = self.vae.embeddings.to(**self.tpdv)
+        #embeddings = self.embeddings.to(**self.tpdv)
         action = torch.tensor(action)
         if action.dim() == 1:
             action = action.view(-1,self.discrete_action_dim)
         action = action.to(**self.tpdv)
         # compute similarity probability based on L2 norm
-        similarity = - self.pairwise_distances(action, embeddings)
+        similarity = - self.pairwise_distances(action, self.embeddings)
 
         val, pos = torch.max(similarity, dim=1)
         #print("pos",pos,len(pos))
@@ -288,7 +288,7 @@ class Action_representation(nn.Module):
         #     # print("pos.cpu().item()", pos.cpu().numpy())
         #     return pos.cpu().numpy()
         
-        return embeddings[pos].cpu().numpy()
+        return self.embeddings[pos].cpu().numpy()
 
     def save(self, filename, directory):
         torch.save(self.vae.state_dict(), '%s/%s_vae.pth' % (directory, filename))
