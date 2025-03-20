@@ -146,6 +146,7 @@ class Action_representation(nn.Module):
                       actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch, next_rnn_states_actor_batch= sample
                 state_pre = np.concatenate((obs_batch, rnn_states_actor_batch), axis = -1)
                 state_after = np.concatenate((next_obs_batch,next_rnn_states_actor_batch), axis = -1)
+                del obs_batch, next_obs_batch, rnn_states_actor_batch, next_rnn_states_actor_batch
 
                 #print("state_pre",state_pre.shape)
                 #print("state_after",state_after.shape)

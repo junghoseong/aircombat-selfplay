@@ -239,7 +239,7 @@ class HybridJSBSimRunner(Runner):
         next_values = np.array(np.split(_t2n(next_values), self.buffer.n_rollout_threads))
         self.buffer.compute_returns(next_values)
 
-    def insert(self, data: List[np.ndarray]):
+    def insert(self, data):
         obs, discrete_actions,continuous_actions,all_continuous_actions,discrete_embeddings,continuous_embeddings, \
                     rewards, dones, action_log_probs, values, rnn_states_actor, rnn_states_critic= data
         dones = dones.squeeze(axis=-1)
