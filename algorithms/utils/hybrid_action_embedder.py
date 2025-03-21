@@ -166,7 +166,7 @@ class Action_representation(nn.Module):
                 continuous_actions_batch = torch.tensor(continuous_actions_batch).to(**self.tpdv)
                 state_after = torch.tensor(state_after).to(**self.tpdv)
 
-                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,0,1e-4)  
+                vae_loss, recon_loss_d, recon_loss_c, KL_loss = self.train_step(state_pre,discrete_actions_batch,continuous_actions_batch,state_after,1e-4)  
 
                 train_info['vae_total_loss'] += vae_loss
                 train_info['vae_dynamics_predictive_loss'] += recon_loss_d
@@ -307,8 +307,9 @@ class Action_representation(nn.Module):
         torch.save(self.vae.state_dict(), '%s/%s_vae.pth' % (directory, filename))
         # torch.save(self.vae.embeddings, '%s/%s_embeddings.pth' % (directory, filename))
 
-    def load(self, filename, directory):
-        self.vae.load_state_dict(torch.load('%s/%s_vae.pth' % (directory, filename), map_location=self.device))
+    def load(self, filename):
+        #self.vae.load_state_dict(torch.load('%s/%s_vae.pth' % (directory, filename), map_location=self.device))
+        self.vae.load_state_dict(torch.load(filename))
         # self.vae.embeddings = torch.load('%s/%s_embeddings.pth' % (directory, filename), map_location=self.device)
 
     def get_c_rate(self, s1, a_d, a_c, s2, batch_size=100, range_rate=5):  #boundary??
