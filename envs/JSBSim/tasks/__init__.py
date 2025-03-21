@@ -1,4 +1,7 @@
 from .heading_task import HeadingTask
-from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask
-from .singlecombat_with_missile_task import SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask, Scenario1, Scenario1_curriculum
+from .singlecombat_task import SingleCombatTask, HierarchicalSingleCombatTask, Maneuver_curriculum
+from .singlecombat_with_missile_task import SingleCombatDodgeMissileTask, HierarchicalSingleCombatDodgeMissileTask, HierarchicalSingleCombatShootTask, SingleCombatShootMissileTask
+from .scenario1_task import Scenario1, Scenario1_curriculum, Scenario1_RWR, Scenario1_RWR_curriculum, Scenario1_Hybrid
+from .scenario2_task import Scenario2, Scenario2_curriculum, Scenario2_NvN, Scenario2_NvN_curriculum, Scenario2_RWR, Scenario2_RWR_curriculum, Scenario2_Hybrid, Scenario2_Hybrid_curriculum
+from .scenario3_task import Scenario3, Scenario3_curriculum, Scenario3_NvN, Scenario3_NvN_curriculum, Scenario3_RWR, Scenario3_RWR_curriculum
 from .WVR_task import WVRTask

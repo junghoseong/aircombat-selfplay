@@ -33,7 +33,7 @@ enm_policy_index = 0
 episode_rewards = 0
 experiment_name = "Scenario1"
 
-env = SingleCombatEnv("1v1/ShootMissile/scenario1")
+env = SingleCombatEnv("scenario1/scenario1")
 
 env.seed(10)
 args = Args()

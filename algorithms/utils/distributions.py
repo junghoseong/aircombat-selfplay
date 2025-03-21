@@ -55,7 +55,7 @@ class FixedBernoulli(torch.distributions.Bernoulli):
         return super().entropy().sum(-1, keepdim=True)
 
     def mode(self):
-        return torch.gt(self.probs, 0.5).float()
+        return torch.gt(self.probs, 0.5).float()   #due to the nature of the Bernoulli distribution, the mode is 1 if the probability is greater than 0.5, and 0 otherwise
 
 
 class Categorical(nn.Module):

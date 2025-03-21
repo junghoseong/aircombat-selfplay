@@ -2,7 +2,9 @@ import numpy as np
 from typing import Tuple, Dict, Any
 from .env_base import BaseEnv
 from ..tasks.multiplecombat_task import HierarchicalMultipleCombatShootTask, HierarchicalMultipleCombatTask, MultipleCombatTask
-from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask, Scenario2, Scenario3, Scenario2_curriculum
+from ..tasks.multiplecombat_with_missile_task import HierarchicalMultipleCombatShootTask
+from ..tasks import Scenario2, Scenario2_curriculum, Scenario2_NvN, Scenario2_NvN_curriculum, Scenario2_RWR, Scenario2_RWR_curriculum, Scenario2_Hybrid, Scenario2_Hybrid_curriculum
+from ..tasks import Scenario3, Scenario3_curriculum, Scenario3_NvN, Scenario3_NvN_curriculum, Scenario3_RWR, Scenario3_RWR_curriculum
 from ..tasks.KAI_project_task import Scenario2_for_KAI, Scenario3_for_KAI
 from ..utils.utils import calculate_coordinates_heading_by_curriculum
 
@@ -19,6 +21,26 @@ class MultipleCombatEnv(BaseEnv):
     @property
     def share_observation_space(self):
         return self.task.share_observation_space
+    
+    @property
+    def discrete_action_space(self):
+        return self.task.discrete_action_space
+    
+    @property
+    def continuous_action_space(self):
+        return self.task.continuous_action_space
+    
+    @property
+    def continuous_embedding_space(self):
+        return self.task.continuous_embedding_space
+    
+    @property
+    def discrete_embedding_space(self):
+        return self.task.discrete_embedding_space
+    
+    @property
+    def rnn_actor_space(self):
+        return self.task.rnn_actor_space
 
     def load_task(self):
         taskname = getattr(self.config, 'task', None)
@@ -38,6 +60,28 @@ class MultipleCombatEnv(BaseEnv):
             self.task = Scenario3_for_KAI(self.config)
         elif taskname == 'scenario2_curriculum':
             self.task = Scenario2_curriculum(self.config)
+        elif taskname == 'scenario2_hybrid':
+            self.task = Scenario2_Hybrid(self.config)
+        elif taskname == 'scenario2_hybrid_curriculum':
+            self.task = Scenario2_Hybrid_curriculum(self.config)
+        elif taskname == 'scenario3_curriculum':
+            self.task = Scenario3_curriculum(self.config)
+        elif taskname == 'scenario2_nvn':
+            self.task = Scenario2_NvN(self.config)
+        elif taskname == 'scenario3_nvn':
+            self.task = Scenario3_NvN(self.config)
+        elif taskname == 'scenario2_nvn_curriculum':
+            self.task = Scenario2_NvN_curriculum(self.config)
+        elif taskname == 'scenario3_nvn_curriculum':
+            self.task = Scenario3_NvN_curriculum(self.config)
+        elif taskname == 'scenario2_rwr':
+            self.task = Scenario2_RWR(self.config)
+        elif taskname == 'scenario3_rwr':
+            self.task = Scenario3_RWR(self.config)
+        elif taskname == 'scenario2_rwr_curriculum':
+            self.task = Scenario2_RWR_curriculum(self.config)           
+        elif taskname == 'scenario3_rwr_curriculum':
+            self.task = Scenario3_RWR_curriculum(self.config)
         else:
             raise NotImplementedError(f"Unknown taskname: {taskname}")
 
@@ -96,7 +140,7 @@ class MultipleCombatEnv(BaseEnv):
             sim.reload(init_states[idx])
         self._tempsims.clear()
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
+    def step(self, obs:np.ndarray, share_obs:np.ndarray, action: np.ndarray, rnn_states: np.ndarray, action_representation) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         """Run one timestep of the environment's dynamics. When end of
         episode is reached, you are responsible for calling `reset()`
         to reset this environment's observation. Accepts an action and
@@ -118,9 +162,16 @@ class MultipleCombatEnv(BaseEnv):
 
         # apply actions
         action = self._unpack(action)
-        for agent_id in self.agents.keys():
-            a_action = self.task.normalize_action(self, agent_id, action[agent_id])
+        continuous_actions={}
+        discrete_actions={}
+        for agent_id in self.agents.keys(): # does this take baseline agent action into account?
+            print(agent_id,self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation))
+            a_action, cont_action= self.task.normalize_action(self, agent_id, self.task.get_obs(self,agent_id) ,rnn_states, action[agent_id],action_representation)
             self.agents[agent_id].set_property_values(self.task.action_var, a_action)
+            #print("cont_action", cont_action)
+            continuous_actions[agent_id] = cont_action
+            discrete_actions[agent_id] = self.task._shoot_action[agent_id][0]
+            
         # run simulation
         for _ in range(self.agent_interaction_steps):
             for sim in self._jsbsims.values():
@@ -159,7 +210,8 @@ class MultipleCombatEnv(BaseEnv):
             done, info = self.task.get_termination(self, agent_id, info)
             dones[agent_id] = [done]
 
-        return self._pack(obs), self._pack(share_obs), self._pack(rewards), self._pack(dones), info
+        return self._pack(obs), self._pack(share_obs), self._pack(rewards), self._pack(dones),\
+              self._pack(continuous_actions), self._pack(discrete_actions), info
     
     
     def reset_simulators_curriculum(self, angle):

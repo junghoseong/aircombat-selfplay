@@ -1,0 +1,437 @@
+2025-02-06 18:21:48 INFO open for scan: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/run-1n0l2y5f.wandb
+2025-02-06 18:21:49 INFO watching files in: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files
+2025-02-06 18:21:49 INFO run started: 1n0l2y5f with start time 1738769888.955324
+2025-02-06 18:21:49 INFO saving file wandb-metadata.json with policy now
+2025-02-06 18:21:49 INFO saving file wandb-summary.json with policy end
+2025-02-06 18:21:49 INFO handling exit code: 1
+2025-02-06 18:21:49 INFO handling runtime: 63785
+2025-02-06 18:21:49 INFO saving file wandb-summary.json with policy end
+2025-02-06 18:21:49 INFO send defer
+2025-02-06 18:21:49 INFO handle sender defer: 0
+2025-02-06 18:21:49 INFO send defer: 1
+2025-02-06 18:21:49 INFO handle sender defer: 1
+2025-02-06 18:21:49 INFO send defer: 2
+2025-02-06 18:21:49 INFO handle sender defer: 2
+2025-02-06 18:21:49 INFO send defer: 3
+2025-02-06 18:21:49 INFO handle sender defer: 3
+2025-02-06 18:21:49 INFO send defer: 4
+2025-02-06 18:21:49 INFO handle sender defer: 4
+2025-02-06 18:21:49 INFO send defer: 5
+2025-02-06 18:21:49 INFO handle sender defer: 5
+2025-02-06 18:21:49 INFO send defer: 6
+2025-02-06 18:21:49 INFO handle sender defer: 6
+2025-02-06 18:21:50 INFO send defer: 7
+2025-02-06 18:21:50 INFO handle sender defer: 7
+2025-02-06 18:21:50 INFO file/dir modified: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/wandb-summary.json
+2025-02-06 18:21:50 INFO file/dir modified: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/config.yaml
+2025-02-06 18:21:50 INFO file/dir created: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/output.log
+2025-02-06 18:21:50 INFO Uploaded file /tmp/tmpccf5tgt2wandb/q14l9noh-wandb-metadata.json
+2025-02-06 18:21:52 INFO send defer: 8
+2025-02-06 18:21:52 INFO handle sender defer: 8
+2025-02-06 18:21:52 INFO Attempting to build job artifact
+2025-02-06 18:21:52 WARNING No requirements.txt found, not creating job artifact. See https://docs.wandb.ai/guides/launch/create-job
+2025-02-06 18:21:52 INFO send defer: 9
+2025-02-06 18:21:52 INFO handle sender defer: 9
+2025-02-06 18:21:52 INFO shutting down directory watcher
+2025-02-06 18:21:52 INFO file/dir modified: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/output.log
+2025-02-06 18:21:52 INFO scan: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_6.pt discriminator_6.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_37.pt actor_37.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_8.pt discriminator_8.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_17.pt actor_17.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_11.pt discriminator_11.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_19.pt actor_19.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_39.pt discriminator_39.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_14.pt discriminator_14.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_22.pt actor_22.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_28.pt discriminator_28.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_3.pt discriminator_3.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_0.pt discriminator_0.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_8.pt actor_8.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_23.pt discriminator_23.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_9.pt actor_9.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_24.pt actor_24.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_4.pt actor_4.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_31.pt actor_31.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_7.pt actor_7.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_0.pt actor_0.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_4.pt discriminator_4.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_3.pt actor_3.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_11.pt actor_11.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_35.pt actor_35.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_16.pt actor_16.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_28.pt actor_28.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_33.pt discriminator_33.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_13.pt actor_13.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/wandb-metadata.json wandb-metadata.json
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_34.pt discriminator_34.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_9.pt discriminator_9.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_35.pt discriminator_35.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_34.pt actor_34.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_23.pt actor_23.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_2.pt discriminator_2.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/conda-environment.yaml conda-environment.yaml
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_32.pt actor_32.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_15.pt actor_15.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_12.pt discriminator_12.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_14.pt actor_14.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_30.pt discriminator_30.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_17.pt discriminator_17.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_22.pt discriminator_22.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/critic_latest.pt critic_latest.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_25.pt actor_25.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_1.pt actor_1.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_18.pt actor_18.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/output.log output.log
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_39.pt actor_39.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_18.pt discriminator_18.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_36.pt actor_36.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_12.pt actor_12.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/wandb-summary.json wandb-summary.json
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_2.pt actor_2.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_13.pt discriminator_13.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_5.pt actor_5.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_32.pt discriminator_32.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_10.pt actor_10.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_6.pt actor_6.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_33.pt actor_33.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_10.pt discriminator_10.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_30.pt actor_30.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_29.pt discriminator_29.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_26.pt discriminator_26.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_15.pt discriminator_15.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_16.pt discriminator_16.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_37.pt discriminator_37.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_5.pt discriminator_5.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_38.pt discriminator_38.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_31.pt discriminator_31.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_7.pt discriminator_7.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_27.pt discriminator_27.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_1.pt discriminator_1.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_latest.pt actor_latest.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_29.pt actor_29.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_20.pt discriminator_20.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_20.pt actor_20.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_19.pt discriminator_19.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_24.pt discriminator_24.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_21.pt actor_21.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_36.pt discriminator_36.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_25.pt discriminator_25.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/config.yaml config.yaml
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_38.pt actor_38.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_26.pt actor_26.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_21.pt discriminator_21.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_latest.pt discriminator_latest.pt
+2025-02-06 18:21:52 INFO scan save: /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_27.pt actor_27.pt
+2025-02-06 18:21:52 INFO send defer: 10
+2025-02-06 18:21:52 INFO handle sender defer: 10
+2025-02-06 18:21:52 INFO shutting down file pusher
+2025-02-06 18:21:52 INFO shutting down sender
+2025-02-06 18:21:52 INFO shutting down file pusher
+2025-02-06 18:21:52 INFO waiting for file pusher
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:52 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:53 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_8.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/output.log
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_19.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_14.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_22.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_6.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/conda-environment.yaml
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_37.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_11.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_3.pt
+2025-02-06 18:21:54 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/wandb-summary.json
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_4.pt
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_28.pt
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_0.pt
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_24.pt
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_31.pt
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_13.pt
+2025-02-06 18:21:55 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_12.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_11.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_27.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_4.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_17.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_23.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_9.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_2.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_0.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_5.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_36.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/config.yaml
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_30.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_39.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_23.pt
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_8.pt
+2025-02-06 18:21:56 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_16.pt
+2025-02-06 18:21:56 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_10.pt
+2025-02-06 18:21:56 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:56 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_21.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_2.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_1.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_28.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_20.pt
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_30.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_37.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_32.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_20.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_15.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_39.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_34.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_latest.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_16.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_18.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_33.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_14.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_25.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_34.pt
+2025-02-06 18:21:57 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:57 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_24.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_9.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_21.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_38.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_1.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_7.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_10.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_33.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_5.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_18.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_3.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_36.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_6.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/critic_latest.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_38.pt
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_35.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_29.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_26.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_15.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_22.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_17.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_19.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_13.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_26.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_35.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_12.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_32.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/actor_27.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_29.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_25.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_latest.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_7.pt
+2025-02-06 18:21:58 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-06 18:21:58 INFO Uploaded file /home/son/kai_ai/new_aircombat/aircombat-selfplay/scripts/results/MultipleCombat/2v2/scenario2/mappo/MI_experiment_move_vs_firearm/wandb/offline-run-20250206_003808-1n0l2y5f/files/discriminator_31.pt
+2025-02-06 18:21:58 INFO send defer: 11
+2025-02-06 18:21:59 INFO file stream finish called
+2025-02-06 18:22:00 INFO file stream finish is done
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:47 WARNING Connection pool is full, discarding connection: api.wandb.ai. Connection pool size: 10
+2025-02-07 02:06:49 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:50 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:51 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:52 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10
+2025-02-07 02:06:52 WARNING Connection pool is full, discarding connection: storage.googleapis.com. Connection pool size: 10

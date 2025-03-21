@@ -10,11 +10,19 @@ from ..reward_functions import AltitudeReward, PostureReward, EventDrivenReward,
 from ..termination_conditions import ExtremeState, LowAltitude, Overload, Timeout, SafeReturn
 from ..utils.utils import get_AO_TA_R, LLA2NEU, get_root_dir
 from ..model.baseline_actor import BaselineActor
-
+from ..model.baseline import PursueAgent
 
 class MultipleCombatTask(SingleCombatTask):
     def __init__(self, config):
         super().__init__(config)
+        self.baseline_agent_load_flag = False
+        
+        if self.use_baseline:
+            agent_id = []
+            for index, (key, value) in enumerate(self.config.aircraft_configs.items()):
+                if value['color'] == 'Red':
+                    agent_id.append(index)
+            self.baseline_agent = self.load_agents(self.config.baseline_type, agent_id)
 
         self.reward_functions = [
             AltitudeReward(self.config),
@@ -26,9 +34,26 @@ class MultipleCombatTask(SingleCombatTask):
             SafeReturn(self.config),
             ExtremeState(self.config),
             Overload(self.config),
-            #LowAltitude(self.config),
+            LowAltitude(self.config),
             Timeout(self.config),
         ]
+
+    def load_agents(self, name, agent_ids: list):
+        if name == 'pursue':
+            agents = []
+            for agent_id in agent_ids:
+                agents.append(PursueAgent(agent_id))
+            return agents
+        else:
+            raise NotImplementedError
+        
+    def reset(self, env):
+        self._agent_die_flag = {}
+        if self.use_baseline:
+            for agent in self.baseline_agent:
+                agent.reset()
+        for reward_function in self.reward_functions:
+            reward_function.reset(self, env)
 
     @property
     def num_agents(self) -> int:
@@ -113,10 +138,10 @@ class MultipleCombatTask(SingleCombatTask):
         """Convert discrete action index into continuous value.
         """
         norm_act = np.zeros(4)
-        norm_act[0] = action[0] * 2. / (self.action_space.nvec[0] - 1.) - 1.
-        norm_act[1] = action[1] * 2. / (self.action_space.nvec[1] - 1.) - 1.
-        norm_act[2] = action[2] * 2. / (self.action_space.nvec[2] - 1.) - 1.
-        norm_act[3] = action[3] * 0.5 / (self.action_space.nvec[3] - 1.) + 0.4
+        norm_act[0] = action[0] / 20  - 1.
+        norm_act[1] = action[1] / 20 - 1.
+        norm_act[2] = action[2] / 20 - 1.
+        norm_act[3] = action[3] / 58 + 0.4
         return norm_act
 
     def get_reward(self, env, agent_id, info: dict = ...) -> Tuple[float, dict]:
@@ -147,9 +172,15 @@ class HierarchicalMultipleCombatTask(MultipleCombatTask):
         raw_obs = self.get_obs(env, agent_id)
         input_obs = np.zeros(12)
         # (1) delta altitude/heading/velocity
-        input_obs[0] = self.norm_delta_altitude[action[0]]
-        input_obs[1] = self.norm_delta_heading[action[1]]
-        input_obs[2] = self.norm_delta_velocity[action[2]]
+        if isinstance(action[0], int):
+            input_obs[0] = self.norm_delta_altitude[action[0]]
+            input_obs[1] = self.norm_delta_heading[action[1]]
+            input_obs[2] = self.norm_delta_velocity[action[2]]
+        else:
+            input_obs[0] = action[0]
+            input_obs[1] = action[1]
+            input_obs[2] = action[2]
+            cont_action = action
         # (2) ego info
         input_obs[3:12] = raw_obs[:9]
         input_obs = np.expand_dims(input_obs, axis=0)
@@ -163,7 +194,10 @@ class HierarchicalMultipleCombatTask(MultipleCombatTask):
         norm_act[1] = action[1] / 20 - 1.
         norm_act[2] = action[2] / 20 - 1.
         norm_act[3] = action[3] / 58 + 0.4
-        return norm_act
+        if isinstance(action[0], int):
+            return norm_act
+        else:
+            return norm_act,cont_action
 
     def reset(self, env):
         """Task-specific reset, include reward function reset.

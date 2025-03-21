@@ -1,3 +1,4 @@
 from .singlecontrol_env import SingleControlEnv
 from .singlecombat_env import SingleCombatEnv
 from .multiplecombat_env import MultipleCombatEnv
+from .hybrid_singlecombat_env import HybridSingleCombatEnv

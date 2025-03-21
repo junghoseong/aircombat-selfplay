@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
+from gymnasium import spaces
 import numpy as np
 
 from .mlp import MLPBase
 from .utils import check
+from ..utils.buffer import SharedHybridReplayBuffer
 
 class Discriminator(nn.Module):
     def __init__(self, args, num_agents, obs_space, share_obs_space, act_space, device=torch.device("cpu")):
@@ -25,9 +26,12 @@ class Discriminator(nn.Module):
 
         # Network config
         self.num_agents = num_agents
-
-        self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
-        self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
+        if isinstance(act_space, spaces.Box):
+            self.input_dim = 2 * act_space.shape[0] + self.recurrent_hidden_size
+            self.input_dim_wo_act = act_space.shape[0] + self.recurrent_hidden_size
+        else: 
+            self.input_dim = 2*sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
+            self.input_dim_wo_act = sum(len(s.nvec) for s in act_space.spaces) + self.recurrent_hidden_size
 
         self.output_dim = obs_space.shape[0]
 
@@ -52,8 +56,11 @@ class Discriminator(nn.Module):
 
             # For each chunk of the sequence data
             for sample in data_generator:
-
-                obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                if isinstance(buffer,SharedHybridReplayBuffer):
+                    obs_batch, next_obs_batch, share_obs_batch, _, _, _, actions_batch, _, _, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                else:
+                    obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch = sample
+                
 
                 # Update qϕ (influence estimator) and pη (prediction network)
                 disc_loss = self.update_parameters(obs_batch, next_obs_batch, share_obs_batch, actions_batch, masks_batch, active_masks_batch, rnn_states_actor_batch)
