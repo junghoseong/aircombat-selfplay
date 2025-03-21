@@ -242,7 +242,7 @@ def worker(remote: Connection, parent_remote: Connection, env_fn_wrappers):
             if cmd == 'step':
                 remote.send([step_env(env, pre_obs, action, rnn_state, action_rep) for env, pre_obs, action, rnn_state\
                               in zip(envs, pre_obss, actions,rnn_states)])
-                gc.collect()
+                #gc.collect()
             elif cmd == 'reset':
                 remote.send([env.reset() for env in envs])
             elif cmd == 'close':
